@@ -1,0 +1,181 @@
+@page
+@model RegisterModel
+@{
+    ViewData["Title"] = "Create Account";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"]</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            overflow-y: auto;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.55), rgba(255,255,255,0.55)),
+                url('/images/bg_image.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .register-card {
+            position: relative;
+            background: #ffffff;
+            width: 340px;
+            max-width: 100%;
+            border-radius: 18px;
+            padding: 32px 32px 40px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            margin: auto;
+        }
+
+        @@media (min-width: 768px) {
+            .register-card {
+                width: 450px;
+                padding: 40px 44px 48px;
+            }
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #111;
+            color: #fff;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: #333;
+        }
+
+        .logo {
+            width: 220px;
+            max-width: 45vw;
+            height: auto;
+            margin: 2px auto 8px;
+            display: block;
+        }
+
+        h1.title {
+            font-size: 30px;
+            font-weight: 800;
+            margin: 0 0 20px;
+            color: #111;
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #111;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #111;
+        }
+
+        .btn-register {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: #111;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .btn-register:hover {
+            background: #333;
+        }
+
+        .validation-summary {
+            color: #b00020;
+            font-size: 13px;
+            margin-bottom: 12px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-card">
+        <a asp-page="Login" class="back-btn" aria-label="Back to login">&#8592;</a>
+
+        <img src="/images/logo.png" alt="Logo" class="logo" />
+
+        <h1 class="title">Create Account</h1>
+
+        <form method="post">
+            <div asp-validation-summary="All" class="validation-summary"></div>
+
+            <div class="form-group">
+                <label asp-for="Name">Name</label>
+                <input asp-for="Name" type="text" placeholder="" />
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Email">Email</label>
+                <input asp-for="Email" type="email" placeholder="" />
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Password">Password</label>
+                <input asp-for="Password" type="password" placeholder="" />
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ConfirmPassword">Confirm Password</label>
+                <input asp-for="ConfirmPassword" type="password" placeholder="" />
+            </div>
+
+            <button type="submit" class="btn-register">Register</button>
+        </form>
+    </div>
+</body>
+</html>
