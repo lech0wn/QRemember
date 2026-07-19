@@ -259,3 +259,4 @@ D:\QRemember\src\QRemember.Web\obj\Debug\net10.0\QRemember.Web.genruntimeconfig.
 D:\QRemember\src\QRemember.Web\obj\Debug\net10.0\ref\QRemember.Web.dll
 D:\QRemember\src\QRemember.Web\bin\Debug\net10.0\Npgsql.dll
 D:\QRemember\src\QRemember.Web\bin\Debug\net10.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll
+D:\QRemember\src\QRemember.Web\obj\Debug\net10.0\QRemember.Web.sourcelink.json
