@@ -2,4 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/QRemember.Web/QRemember.Web.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/QRemember.Tests/QRemember.Tests.csproj" />
+  </Folder>
 </Solution>

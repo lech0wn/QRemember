@@ -5,8 +5,8 @@ namespace QRemember.Web.Pages;
 
 public class IndexModel : PageModel
 {
-    public void OnGet()
+    public IActionResult OnGet()
     {
-
+        return RedirectToPage("/Shared/Onboarding/Login");
     }
 }

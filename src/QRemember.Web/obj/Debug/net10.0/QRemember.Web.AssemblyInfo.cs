@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("QRemember.Web")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cb555395b96b45d5f3139112333b6626a9139b7b")]
 [assembly: System.Reflection.AssemblyProductAttribute("QRemember.Web")]
 [assembly: System.Reflection.AssemblyTitleAttribute("QRemember.Web")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
