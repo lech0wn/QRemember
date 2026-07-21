@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "jOHqF/F/SAk=",
+  "dgSpecHash": "7H2reipOwdU=",
   "success": true,
-  "projectFilePath": "D:\\QRemember\\src\\QRemember.Web\\QRemember.Web.csproj",
+  "projectFilePath": "D:\\QRemember\\src\\Qremember.Web\\QRemember.Web.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\annis\\.nuget\\packages\\cloudinarydotnet\\1.29.2\\cloudinarydotnet.1.29.2.nupkg.sha512",
     "C:\\Users\\annis\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",

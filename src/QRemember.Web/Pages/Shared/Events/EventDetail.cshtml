@@ -1,0 +1,547 @@
+@page
+@model EventDetailModel
+@{
+    ViewData["Title"] = "Moderate Photos";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;1,500&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --accent: #B8975A;
+            --bg: #FAF9F6;
+            --text: #1C1C1C;
+            --muted: #8C8C8C;
+            --danger: #B00020;
+            --approved: #2E7D46;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            min-height: 100%;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .layout {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 32px 32px 80px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--muted);
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+
+        .back-link:hover {
+            color: var(--text);
+        }
+
+        .event-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .event-header .hashtag {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 30px;
+            color: var(--accent);
+            margin: 0 0 6px;
+            word-break: break-word;
+        }
+
+        .event-header .subtitle {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 14px;
+            color: var(--text);
+            margin: 0;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid var(--accent);
+            margin: 24px 0 28px;
+        }
+
+        .moderate-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .moderate-bar h2 {
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+
+        .auto-approve {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .auto-approve span {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 22px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .switch-track {
+            position: absolute;
+            inset: 0;
+            background: #D8D4C8;
+            border-radius: 22px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .switch-track::before {
+            content: "";
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            left: 3px;
+            top: 3px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.15s;
+        }
+
+        .switch input:checked + .switch-track {
+            background: var(--accent);
+        }
+
+        .switch input:checked + .switch-track::before {
+            transform: translateX(18px);
+        }
+
+        .filter-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .filter-chip {
+            border: 1px solid #D8D4C8;
+            background: #fff;
+            border-radius: 20px;
+            padding: 7px 14px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            cursor: pointer;
+        }
+
+        .filter-chip.active {
+            background: var(--text);
+            border-color: var(--text);
+            color: var(--bg);
+        }
+
+        .photo-grid {
+            column-count: 3;
+            column-gap: 16px;
+        }
+
+        .photo-tile {
+            position: relative;
+            break-inside: avoid;
+            margin-bottom: 16px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+        }
+
+        .photo-tile .photo-img {
+            width: 100%;
+            transition: filter 0.15s, opacity 0.15s;
+        }
+
+        .photo-tile[data-status="hidden"] .photo-img {
+            filter: grayscale(70%);
+            opacity: 0.55;
+        }
+
+        .photo-tile.removing {
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.2s, transform 0.2s;
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            padding: 3px 9px;
+            border-radius: 20px;
+            color: #fff;
+            background: var(--muted);
+        }
+
+        .photo-tile[data-status="approved"] .status-badge {
+            background: var(--approved);
+        }
+
+        .photo-tile[data-status="hidden"] .status-badge {
+            background: #555;
+        }
+
+        .photo-actions {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 10px 10px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0));
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity 0.15s, transform 0.15s;
+        }
+
+        .photo-tile:hover .photo-actions,
+        .photo-tile:focus-within .photo-actions {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .photo-actions button {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.92);
+            color: var(--text);
+        }
+
+        .photo-actions button svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .photo-actions .action-approve:hover {
+            background: var(--approved);
+            color: #fff;
+        }
+
+        .photo-actions .action-hide:hover {
+            background: var(--muted);
+            color: #fff;
+        }
+
+        .photo-actions .action-delete:hover {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .coachmark {
+            position: absolute;
+            top: 0;
+            right: 32px;
+            width: 220px;
+            background: var(--bg);
+            border: 1px solid #E4E1D8;
+            border-radius: 10px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            padding: 18px;
+            text-align: left;
+        }
+
+        .coachmark h2 {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--accent);
+            margin: 0 0 10px;
+        }
+
+        .coachmark p {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            line-height: 1.5;
+            color: var(--text);
+            margin: 0 0 14px;
+        }
+
+        .coachmark-okay {
+            display: block;
+            width: 100%;
+            background: none;
+            border: none;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text);
+            text-decoration: underline;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .coachmark-step {
+            text-align: center;
+            font-size: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .coachmark-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            cursor: pointer;
+        }
+
+        .coachmark-checkbox input {
+            width: 12px;
+            height: 12px;
+        }
+
+        @@media (max-width: 860px) {
+            .coachmark {
+                position: static;
+                width: 100%;
+                margin: 0 0 24px;
+            }
+        }
+
+        @@media (max-width: 640px) {
+            .photo-grid {
+                column-count: 2;
+            }
+        }
+
+        @@media (max-width: 420px) {
+            .photo-grid {
+                column-count: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <partial name="_EventsNavBar" />
+
+    <div class="layout" style="position:relative;">
+        <a asp-page="MyEvents" class="back-link">&#8592; Go back to My Events</a>
+
+        <div class="event-header">
+            <div class="hashtag">@Model.Hashtag</div>
+            <p class="subtitle">Photos shared by everyone at the event</p>
+        </div>
+
+        <hr class="divider" />
+
+        <div class="moderate-bar">
+            <h2>Moderate Photos</h2>
+            <label class="auto-approve">
+                <span>Auto Approve</span>
+                <span class="switch">
+                    <input type="checkbox" id="auto-approve-toggle" />
+                    <span class="switch-track"></span>
+                </span>
+            </label>
+        </div>
+
+        <div class="filter-chips">
+            <button type="button" class="filter-chip active" data-filter="all">All</button>
+            <button type="button" class="filter-chip" data-filter="pending">Pending</button>
+            <button type="button" class="filter-chip" data-filter="approved">Approved</button>
+            <button type="button" class="filter-chip" data-filter="hidden">Hidden</button>
+        </div>
+
+        @if (Model.Photos.Count == 0)
+        {
+            <div class="empty-state">No photos have been uploaded to this event yet.</div>
+        }
+        else
+        {
+            <div class="photo-grid" id="photo-grid">
+                @foreach (var photo in Model.Photos)
+                {
+                    <div class="photo-tile" data-status="@photo.Status">
+                        <div class="photo-img" style="height:@(photo.Height)px;background:linear-gradient(160deg, @photo.GradientFrom, @photo.GradientTo);"></div>
+                        <span class="status-badge">@photo.Status</span>
+                        <div class="photo-actions">
+                            <button type="button" class="action-approve" title="Approve" aria-label="Approve photo">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            </button>
+                            <button type="button" class="action-hide" title="Hide" aria-label="Hide photo">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                            </button>
+                            <button type="button" class="action-delete" title="Delete" aria-label="Delete photo">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        <aside class="coachmark" id="coachmark">
+            <h2>MANAGE THE GALLERY</h2>
+            <p>View photos as guests upload them. Approve, hide, or delete each one, or turn on auto-approve to let uploads appear instantly without review.</p>
+            <button type="button" class="coachmark-okay" id="coachmark-okay">Okay</button>
+            <div class="coachmark-step">Step 3 of 3</div>
+            <label class="coachmark-checkbox">
+                <input type="checkbox" id="coachmark-dont-show" />
+                Don't show this again
+            </label>
+        </aside>
+    </div>
+
+    <script>
+        (function () {
+            var storageKey = 'qremember_hide_coachmark_manage_gallery';
+            var coachmark = document.getElementById('coachmark');
+            var okayBtn = document.getElementById('coachmark-okay');
+            var dontShow = document.getElementById('coachmark-dont-show');
+
+            if (localStorage.getItem(storageKey) === 'true') {
+                coachmark.style.display = 'none';
+            }
+
+            okayBtn.addEventListener('click', function () {
+                if (dontShow.checked) {
+                    localStorage.setItem(storageKey, 'true');
+                }
+                coachmark.style.display = 'none';
+            });
+        })();
+
+        (function () {
+            var grid = document.getElementById('photo-grid');
+            if (!grid) {
+                return;
+            }
+
+            grid.addEventListener('click', function (e) {
+                var btn = e.target.closest('button');
+                if (!btn) {
+                    return;
+                }
+                var tile = btn.closest('.photo-tile');
+                if (!tile) {
+                    return;
+                }
+
+                if (btn.classList.contains('action-approve')) {
+                    tile.dataset.status = 'approved';
+                    tile.querySelector('.status-badge').textContent = 'approved';
+                } else if (btn.classList.contains('action-hide')) {
+                    tile.dataset.status = 'hidden';
+                    tile.querySelector('.status-badge').textContent = 'hidden';
+                } else if (btn.classList.contains('action-delete')) {
+                    tile.classList.add('removing');
+                    setTimeout(function () {
+                        tile.remove();
+                    }, 200);
+                }
+
+                applyFilter(document.querySelector('.filter-chip.active').dataset.filter);
+            });
+
+            var chips = document.querySelectorAll('.filter-chip');
+            chips.forEach(function (chip) {
+                chip.addEventListener('click', function () {
+                    chips.forEach(function (c) { c.classList.remove('active'); });
+                    chip.classList.add('active');
+                    applyFilter(chip.dataset.filter);
+                });
+            });
+
+            function applyFilter(filter) {
+                document.querySelectorAll('.photo-tile').forEach(function (tile) {
+                    var show = filter === 'all' || tile.dataset.status === filter;
+                    tile.style.display = show ? '' : 'none';
+                });
+            }
+
+            var autoApprove = document.getElementById('auto-approve-toggle');
+            autoApprove.addEventListener('change', function () {
+                document.querySelectorAll('.action-approve').forEach(function (btn) {
+                    btn.style.display = autoApprove.checked ? 'none' : '';
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

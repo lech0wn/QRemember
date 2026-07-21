@@ -1,0 +1,313 @@
+@page
+@model CreateEventModel
+@{
+    ViewData["Title"] = "Create Event";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --accent: #B8975A;
+            --bg: #FAF9F6;
+            --text: #1C1C1C;
+            --muted: #8C8C8C;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            min-height: 100%;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .layout {
+            position: relative;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 48px 32px 80px;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .page-header h1 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            font-size: 40px;
+            color: var(--accent);
+            margin: 0 0 10px;
+        }
+
+        .page-header .subtitle {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 15px;
+            color: var(--text);
+            margin: 0;
+        }
+
+        .event-form {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            border: 1px solid #D8D4C8;
+            border-radius: 8px;
+            background: #fff;
+            padding: 12px 14px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            color: var(--text);
+            outline: none;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #B8B8B2;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--accent);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 110px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .form-group input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(66%) sepia(23%) saturate(788%) hue-rotate(354deg) brightness(90%) contrast(88%);
+            cursor: pointer;
+        }
+
+        .btn-next {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            background: var(--text);
+            color: var(--bg);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .btn-next:hover {
+            background: #333;
+        }
+
+        .btn-my-events {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid var(--text);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            display: block;
+            margin-top: 12px;
+        }
+
+        .btn-my-events:hover {
+            background: #F0EEE6;
+        }
+
+        .coachmark {
+            position: absolute;
+            top: 0;
+            right: 32px;
+            width: 200px;
+            background: var(--bg);
+            border: 1px solid #E4E1D8;
+            border-radius: 10px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            padding: 18px;
+            text-align: left;
+        }
+
+        .coachmark h2 {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--accent);
+            margin: 0 0 10px;
+        }
+
+        .coachmark p {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            line-height: 1.5;
+            color: var(--text);
+            margin: 0 0 14px;
+        }
+
+        .coachmark-okay {
+            display: block;
+            width: 100%;
+            background: none;
+            border: none;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text);
+            text-decoration: underline;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .coachmark-step {
+            text-align: center;
+            font-size: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .coachmark-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            cursor: pointer;
+        }
+
+        .coachmark-checkbox input {
+            width: 12px;
+            height: 12px;
+        }
+
+        @@media (max-width: 860px) {
+            .coachmark {
+                position: static;
+                width: 100%;
+                max-width: 480px;
+                margin: 0 auto 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <partial name="_EventsNavBar" />
+
+    <div class="layout">
+        <div class="page-header">
+            <h1>What is the event?</h1>
+            <p class="subtitle">We'll use this to create your gallery</p>
+        </div>
+
+        <form method="get" asp-page="EventReady" class="event-form">
+            <div class="form-group">
+                <label for="Name">Event Name</label>
+                <input type="text" id="Name" name="name" placeholder="e.g. Jane and John's Wedding 2026" required />
+            </div>
+
+            <div class="form-group">
+                <label for="Description">Description</label>
+                <textarea id="Description" name="description" placeholder="Describe the event..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="EventDate">Date &amp; Time of the Event</label>
+                <input type="date" id="EventDate" name="eventDate" />
+            </div>
+
+            <button type="submit" class="btn-next">Next &#8594;</button>
+        </form>
+
+        <a href="/Shared/Events/MyEvents" class="btn-my-events" style="max-width:480px;margin-left:auto;margin-right:auto;">Go to My Events</a>
+
+        <aside class="coachmark" id="coachmark">
+            <h2>CREATE AN EVENT</h2>
+            <p>Enter the event name, description, and the date &amp; time. This sets up the gallery guests will be contributing to</p>
+            <button type="button" class="coachmark-okay" id="coachmark-okay">Okay</button>
+            <div class="coachmark-step">Step 1 of 3</div>
+            <label class="coachmark-checkbox">
+                <input type="checkbox" id="coachmark-dont-show" />
+                Don't show this again
+            </label>
+        </aside>
+    </div>
+
+    <script>
+        (function () {
+            var storageKey = 'qremember_hide_coachmark_create_event';
+            var coachmark = document.getElementById('coachmark');
+            var okayBtn = document.getElementById('coachmark-okay');
+            var dontShow = document.getElementById('coachmark-dont-show');
+
+            if (localStorage.getItem(storageKey) === 'true') {
+                coachmark.style.display = 'none';
+            }
+
+            okayBtn.addEventListener('click', function () {
+                if (dontShow.checked) {
+                    localStorage.setItem(storageKey, 'true');
+                }
+                coachmark.style.display = 'none';
+            });
+        })();
+    </script>
+</body>
+</html>

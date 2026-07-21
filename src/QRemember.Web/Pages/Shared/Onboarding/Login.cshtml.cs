@@ -50,7 +50,7 @@ public class LoginModel : PageModel
 
         if (result.Succeeded)
         {
-            return RedirectToPage("/Index");
+            return RedirectToPage("/Shared/Events/CreateEvent");
         }
 
         if (result.IsLockedOut)

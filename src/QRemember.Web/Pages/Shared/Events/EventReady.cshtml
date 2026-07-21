@@ -1,0 +1,353 @@
+@page
+@model EventReadyModel
+@{
+    ViewData["Title"] = "Your Event is Ready";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --accent: #B8975A;
+            --bg: #FAF9F6;
+            --text: #1C1C1C;
+            --muted: #8C8C8C;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            min-height: 100%;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .layout {
+            position: relative;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 48px 32px 80px;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .page-header h1 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            font-size: 40px;
+            color: var(--accent);
+            margin: 0 0 10px;
+        }
+
+        .page-header .subtitle {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 15px;
+            color: var(--text);
+            margin: 0;
+        }
+
+        .event-card {
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto;
+            background: #fff;
+            border: 1px solid #E4E1D8;
+            border-radius: 10px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+            padding: 28px;
+            text-align: center;
+        }
+
+        .event-hashtag {
+            display: inline-block;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--accent);
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            word-break: break-word;
+        }
+
+        .qr-code {
+            width: 220px;
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto 18px;
+        }
+
+        .link-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            border-top: 1px solid #E4E1D8;
+            padding-top: 14px;
+        }
+
+        .link-row .link-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .link-row .link-value {
+            flex: 1;
+            text-align: left;
+            font-size: 13px;
+            color: var(--text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin: 0 10px;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--muted);
+            padding: 4px;
+            display: flex;
+            align-items: center;
+        }
+
+        .copy-btn:hover {
+            color: var(--text);
+        }
+
+        .copy-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .actions {
+            width: 100%;
+            max-width: 420px;
+            margin: 18px auto 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-download {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            background: var(--text);
+            color: var(--bg);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-download:hover {
+            background: #333;
+        }
+
+        .btn-my-events {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid var(--text);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            display: block;
+        }
+
+        .btn-my-events:hover {
+            background: #F0EEE6;
+        }
+
+        .coachmark {
+            position: absolute;
+            top: 0;
+            right: 32px;
+            width: 200px;
+            background: var(--bg);
+            border: 1px solid #E4E1D8;
+            border-radius: 10px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            padding: 18px;
+            text-align: left;
+        }
+
+        .coachmark h2 {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--accent);
+            margin: 0 0 10px;
+        }
+
+        .coachmark p {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            line-height: 1.5;
+            color: var(--text);
+            margin: 0 0 14px;
+        }
+
+        .coachmark-okay {
+            display: block;
+            width: 100%;
+            background: none;
+            border: none;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text);
+            text-decoration: underline;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .coachmark-step {
+            text-align: center;
+            font-size: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .coachmark-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            cursor: pointer;
+        }
+
+        .coachmark-checkbox input {
+            width: 12px;
+            height: 12px;
+        }
+
+        @@media (max-width: 860px) {
+            .coachmark {
+                position: static;
+                width: 100%;
+                max-width: 420px;
+                margin: 0 auto 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <partial name="_EventsNavBar" />
+
+    <div class="layout">
+        <div class="page-header">
+            <h1>Your Event is Ready</h1>
+            <p class="subtitle">Use the generated QR code for physical installation or share the link to the guests</p>
+        </div>
+
+        <div class="event-card">
+            <div class="event-hashtag">@Model.Hashtag</div>
+            <img src="@Model.QrCodeDataUri" alt="Event QR code" class="qr-code" />
+            <div class="link-row">
+                <span class="link-label">Link</span>
+                <span class="link-value" id="event-link">@Model.EventLink</span>
+                <button type="button" class="copy-btn" id="copy-link-btn" aria-label="Copy link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="actions">
+            <a href="@Model.QrCodeDataUri" download="event-qr.png" class="btn-download">&#8681; Download QR (PNG)</a>
+            <a href="/Shared/Events/MyEvents" class="btn-my-events">Go to My Events</a>
+        </div>
+
+        <aside class="coachmark" id="coachmark">
+            <h2>GET YOUR QR &amp; LINK</h2>
+            <p>A unique QR code and link are generated for the event. Download the QR as a PNG to design and print it however you like, or copy the link to share directly.</p>
+            <button type="button" class="coachmark-okay" id="coachmark-okay">Okay</button>
+            <div class="coachmark-step">Step 2 of 3</div>
+            <label class="coachmark-checkbox">
+                <input type="checkbox" id="coachmark-dont-show" />
+                Don't show this again
+            </label>
+        </aside>
+    </div>
+
+    <script>
+        (function () {
+            var storageKey = 'qremember_hide_coachmark_event_ready';
+            var coachmark = document.getElementById('coachmark');
+            var okayBtn = document.getElementById('coachmark-okay');
+            var dontShow = document.getElementById('coachmark-dont-show');
+
+            if (localStorage.getItem(storageKey) === 'true') {
+                coachmark.style.display = 'none';
+            }
+
+            okayBtn.addEventListener('click', function () {
+                if (dontShow.checked) {
+                    localStorage.setItem(storageKey, 'true');
+                }
+                coachmark.style.display = 'none';
+            });
+
+            var copyBtn = document.getElementById('copy-link-btn');
+            var linkEl = document.getElementById('event-link');
+            copyBtn.addEventListener('click', function () {
+                navigator.clipboard.writeText(linkEl.textContent.trim()).then(function () {
+                    copyBtn.setAttribute('aria-label', 'Copied!');
+                });
+            });
+        })();
+    </script>
+</body>
+</html>
