@@ -1,0 +1,139 @@
+@page
+@model MyEventsModel
+@{
+    ViewData["Title"] = "My Events";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;1,500&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --accent: #B8975A;
+            --bg: #FAF9F6;
+            --text: #1C1C1C;
+            --muted: #8C8C8C;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            min-height: 100%;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .layout {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 32px 80px;
+        }
+
+        h1.section-title {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 34px;
+            color: var(--accent);
+            margin: 0 0 28px;
+        }
+
+        .event-grid {
+            column-count: 2;
+            column-gap: 24px;
+        }
+
+        .event-card {
+            display: block;
+            break-inside: avoid;
+            margin-bottom: 24px;
+            background: var(--text);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            text-decoration: none;
+            cursor: pointer;
+            transition: transform 0.12s;
+        }
+
+        .event-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .event-photo {
+            width: 100%;
+        }
+
+        .event-caption {
+            text-align: center;
+            padding: 18px 16px 22px;
+        }
+
+        .event-caption .event-title {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-weight: 500;
+            font-size: 16px;
+            color: #F5F3EC;
+        }
+
+        .event-caption .event-year {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            color: var(--accent);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        @@media (max-width: 640px) {
+            .event-grid {
+                column-count: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <partial name="_EventsNavBar" />
+
+    <div class="layout">
+        <h1 class="section-title">Recent Events</h1>
+
+        @if (Model.Events.Count == 0)
+        {
+            <div class="empty-state">You haven't created any events yet.</div>
+        }
+        else
+        {
+            <div class="event-grid">
+                @foreach (var ev in Model.Events)
+                {
+                    <a class="event-card" asp-page="EventDetail" asp-route-name="@ev.Title">
+                        <div class="event-photo" style="height:@(ev.PhotoHeight)px;background:linear-gradient(160deg, @ev.GradientFrom, @ev.GradientTo);"></div>
+                        <div class="event-caption">
+                            <span class="event-title">@ev.Title</span>
+                            <span class="event-year"> &bull; @ev.Year</span>
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+    </div>
+</body>
+</html>

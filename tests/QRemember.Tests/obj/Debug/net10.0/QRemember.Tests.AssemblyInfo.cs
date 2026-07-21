@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("QRemember.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cb555395b96b45d5f3139112333b6626a9139b7b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+68981ed62e09c4561e2f531383589a2eae59e1ea")]
 [assembly: System.Reflection.AssemblyProductAttribute("QRemember.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("QRemember.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

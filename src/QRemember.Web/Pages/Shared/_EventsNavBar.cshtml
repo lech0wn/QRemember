@@ -1,0 +1,209 @@
+@using Microsoft.AspNetCore.Identity
+@using QRemember.Web.Models
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@{
+    var currentUser = SignInManager.IsSignedIn(User) ? await UserManager.GetUserAsync(User) : null;
+    var currentPath = ViewContext.HttpContext.Request.Path.Value ?? string.Empty;
+    var isEventsSection = currentPath.StartsWith("/Shared/Events/MyEvents", StringComparison.OrdinalIgnoreCase)
+        || currentPath.StartsWith("/Shared/Events/EventDetail", StringComparison.OrdinalIgnoreCase);
+    string NavClass(string path)
+    {
+        var isActive = path == "/Shared/Events/MyEvents"
+            ? isEventsSection
+            : currentPath.Equals(path, StringComparison.OrdinalIgnoreCase);
+        return isActive ? "nav-link active" : "nav-link";
+    }
+}
+<style>
+    .app-topbar {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        padding: 14px 32px;
+        border-bottom: 1px solid #E4E1D8;
+        position: relative;
+    }
+
+    .app-topbar .brand-mark {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        margin-right: auto;
+    }
+
+    .app-topbar .brand-mark img {
+        width: 30px;
+        height: 30px;
+        object-fit: contain;
+    }
+
+    .app-topbar .brand-mark span {
+        font-family: 'Playfair Display', serif;
+        font-weight: 600;
+        font-size: 16px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--text);
+    }
+
+    .app-topbar nav {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+    }
+
+    .nav-link {
+        font-family: 'Inter', sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--muted);
+        text-decoration: none;
+        padding-bottom: 4px;
+        border-bottom: 2px solid transparent;
+    }
+
+    .nav-link:hover {
+        color: var(--text);
+    }
+
+    .nav-link.active {
+        color: var(--text);
+        border-bottom-color: var(--accent);
+    }
+
+    .profile-wrap {
+        position: relative;
+        margin-left: 12px;
+    }
+
+    .profile-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--text);
+        color: var(--bg);
+        border: none;
+        cursor: pointer;
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .profile-dropdown {
+        display: none;
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        width: 240px;
+        background: var(--bg);
+        border: 1px solid #E4E1D8;
+        border-radius: 10px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+        padding: 16px;
+        z-index: 20;
+    }
+
+    .profile-dropdown.open {
+        display: block;
+    }
+
+    .profile-dropdown .profile-name {
+        font-family: 'Playfair Display', serif;
+        font-weight: 600;
+        font-size: 15px;
+        color: var(--text);
+        margin: 0 0 2px;
+        word-break: break-word;
+    }
+
+    .profile-dropdown .profile-email {
+        font-family: 'Inter', sans-serif;
+        font-size: 12px;
+        color: var(--muted);
+        margin: 0 0 14px;
+        word-break: break-word;
+    }
+
+    .profile-dropdown hr {
+        border: none;
+        border-top: 1px solid #E4E1D8;
+        margin: 0 0 12px;
+    }
+
+    .profile-dropdown form {
+        margin: 0;
+    }
+
+    .logout-btn {
+        width: 100%;
+        background: none;
+        border: none;
+        padding: 0;
+        font-family: 'Inter', sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: #B00020;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .logout-btn:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<header class="app-topbar">
+    <a href="/Shared/Events/CreateEvent" class="brand-mark">
+        <img src="/images/logo.png" alt="" />
+        <span>QRemember</span>
+    </a>
+
+    <nav>
+        <a href="/Shared/Events/CreateEvent" class="@NavClass("/Shared/Events/CreateEvent")">Create</a>
+        <a href="/Shared/Events/MyEvents" class="@NavClass("/Shared/Events/MyEvents")">Events</a>
+    </nav>
+
+    <div class="profile-wrap">
+        <button type="button" class="profile-btn" id="profile-btn" aria-label="Account menu">
+            @((currentUser?.DisplayName ?? currentUser?.Email ?? "?").Trim().Substring(0, 1).ToUpperInvariant())
+        </button>
+        <div class="profile-dropdown" id="profile-dropdown">
+            <p class="profile-name">@(currentUser?.DisplayName ?? "Host")</p>
+            <p class="profile-email">@(currentUser?.Email ?? "")</p>
+            <hr />
+            <form method="post" asp-page="/Shared/Onboarding/Logout">
+                <button type="submit" class="logout-btn">Log out</button>
+            </form>
+        </div>
+    </div>
+</header>
+
+<script>
+    (function () {
+        var btn = document.getElementById('profile-btn');
+        var dropdown = document.getElementById('profile-dropdown');
+        if (!btn || !dropdown) {
+            return;
+        }
+
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            dropdown.classList.toggle('open');
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!dropdown.contains(e.target) && e.target !== btn) {
+                dropdown.classList.remove('open');
+            }
+        });
+    })();
+</script>

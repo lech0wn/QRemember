@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\QRemember\\src\\QRemember.Web\\QRemember.Web.csproj": {}
+    "D:\\QRemember\\src\\Qremember.Web\\QRemember.Web.csproj": {}
   },
   "projects": {
-    "D:\\QRemember\\src\\QRemember.Web\\QRemember.Web.csproj": {
+    "D:\\QRemember\\src\\Qremember.Web\\QRemember.Web.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\QRemember\\src\\QRemember.Web\\QRemember.Web.csproj",
+        "projectUniqueName": "D:\\QRemember\\src\\Qremember.Web\\QRemember.Web.csproj",
         "projectName": "QRemember.Web",
-        "projectPath": "D:\\QRemember\\src\\QRemember.Web\\QRemember.Web.csproj",
+        "projectPath": "D:\\QRemember\\src\\Qremember.Web\\QRemember.Web.csproj",
         "packagesPath": "C:\\Users\\annis\\.nuget\\packages\\",
-        "outputPath": "D:\\QRemember\\src\\QRemember.Web\\obj\\",
+        "outputPath": "D:\\QRemember\\src\\Qremember.Web\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
