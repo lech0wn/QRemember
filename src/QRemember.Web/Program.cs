@@ -1,3 +1,5 @@
+using CloudinaryDotNet;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
@@ -14,6 +16,25 @@ builder.Services.AddRazorPages(options =>
 });
 
 builder.Services.AddSingleton<IQrCodeService, QrCodeService>();
+
+// Cloudinary
+builder.Services.AddSingleton(_ =>
+{
+    var cloudName = builder.Configuration["Cloudinary:CloudName"]
+        ?? throw new InvalidOperationException("Cloudinary:CloudName is not configured.");
+    var apiKey = builder.Configuration["Cloudinary:ApiKey"]
+        ?? throw new InvalidOperationException("Cloudinary:ApiKey is not configured.");
+    var apiSecret = builder.Configuration["Cloudinary:ApiSecret"]
+        ?? throw new InvalidOperationException("Cloudinary:ApiSecret is not configured.");
+
+    return new Cloudinary(new Account(cloudName, apiKey, apiSecret));
+});
+builder.Services.AddScoped<ICloudinaryImageService, CloudinaryImageService>();
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 20 * 1024 * 1024;
+});
 
 // Database — reads from user-secrets in development, environment variables in production
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");

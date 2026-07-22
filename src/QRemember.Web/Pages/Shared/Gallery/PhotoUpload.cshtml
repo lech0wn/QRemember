@@ -1,0 +1,174 @@
+@page "{code}"
+@model PhotoUploadModel
+@{
+    ViewData["Title"] = "Share a photo";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] — @Model.EventName</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --text: #1C1C1C;
+            --muted: #6B6B6B;
+            --border: #E4E1D8;
+            --bg: #FAF9F6;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            min-height: 100%;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .layout {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 32px 24px 64px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--muted);
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            color: var(--text);
+        }
+
+        h1 {
+            margin: 0 0 6px;
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            margin: 0 0 24px;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .field {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 15px;
+            background: #fff;
+        }
+
+        textarea {
+            min-height: 96px;
+            resize: vertical;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            font-size: 14px;
+        }
+
+        .validation-summary {
+            margin-bottom: 16px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            background: #fdecea;
+            color: #b00020;
+            font-size: 14px;
+        }
+
+        .field-error {
+            display: block;
+            margin-top: 6px;
+            font-size: 12px;
+            color: #b00020;
+        }
+
+        .submit-btn {
+            width: 100%;
+            margin-top: 8px;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: var(--text);
+            color: #fff;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+            background: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <a asp-page="/Shared/Gallery/EventGallery" asp-route-code="@Model.EventCode" class="back-link">&#8592; Back to gallery</a>
+
+        <h1>Share a photo</h1>
+        <p class="subtitle">@Model.EventName</p>
+
+        <form method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+            <div class="field">
+                <label asp-for="Input.UploaderName"></label>
+                <input asp-for="Input.UploaderName" autocomplete="name" />
+                <span asp-validation-for="Input.UploaderName" class="field-error"></span>
+            </div>
+
+            <div class="field">
+                <label asp-for="Input.Caption">Caption (optional)</label>
+                <textarea asp-for="Input.Caption" placeholder="Add a short caption…"></textarea>
+                <span asp-validation-for="Input.Caption" class="field-error"></span>
+            </div>
+
+            <div class="field">
+                <label asp-for="Input.PhotoFile"></label>
+                <input asp-for="Input.PhotoFile" accept="image/jpeg,image/png,image/webp,image/gif" />
+                <span asp-validation-for="Input.PhotoFile" class="field-error"></span>
+            </div>
+
+            <button type="submit" class="submit-btn">Upload</button>
+        </form>
+    </div>
+
+    <partial name="_ValidationScriptsPartial" />
+</body>
+</html>

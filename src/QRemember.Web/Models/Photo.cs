@@ -19,6 +19,9 @@ public class Photo
     [MaxLength(100)]
     public string? UploaderName { get; set; }
 
+    [MaxLength(500)]
+    public string? Caption { get; set; }
+
     public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
 
     public bool IsApproved { get; set; } = true;
