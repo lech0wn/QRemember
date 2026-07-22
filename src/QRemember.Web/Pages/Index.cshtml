@@ -1,10 +1,468 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Be our Guest!";
+    Layout = null;
 }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] — QRemember</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --text: #1C1C1C;
+            --muted: #6B6B6B;
+            --card-bg: #ffffff;
+            --scan-bg: #141414;
+            --page-bg: #4a4a4a;
+            --error: #b00020;
+        }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            min-height: 100%;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            background: var(--page-bg);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 16px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .backdrop {
+            position: fixed;
+            inset: 0;
+            background-image: url('images/auth-pic.jpg');
+            background-size: cover;
+            background-position: center;
+            filter: grayscale(1) brightness(0.55);
+            z-index: 0;
+        }
+
+        .card {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 400px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 32px 28px 24px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+            text-align: center;
+        }
+
+        .brand-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .brand-q {
+            font-size: 52px;
+            font-weight: 400;
+            font-style: italic;
+            font-family: Georgia, 'Times New Roman', serif;
+            line-height: 1;
+        }
+
+        .brand-qr-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 8px;
+            background: #1C1C1C;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .brand-qr-icon svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .headline {
+            margin: 0 0 14px;
+            font-size: 26px;
+            font-weight: 800;
+        }
+
+        .intro {
+            margin: 0 0 22px;
+            font-size: 13.5px;
+            line-height: 1.6;
+            color: var(--muted);
+        }
+
+        .intro strong {
+            color: var(--text);
+        }
+
+        .scan-panel {
+            background: var(--scan-bg);
+            border-radius: 16px;
+            padding: 28px 20px 24px;
+            margin-bottom: 18px;
+        }
+
+        .scan-panel svg.qr-icon {
+            width: 44px;
+            height: 44px;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .drop-label {
+            margin: 0 0 18px;
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .qr-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 13px 16px;
+            border-radius: 10px;
+            border: none;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .qr-btn:last-child { margin-bottom: 0; }
+
+        .qr-btn svg { width: 16px; height: 16px; }
+
+        .qr-btn.primary {
+            background: #fff;
+            color: var(--text);
+        }
+
+        .qr-btn.secondary {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .qr-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #fileInput { display: none; }
+
+        .status-msg {
+            font-size: 12.5px;
+            min-height: 16px;
+            margin: 0 0 14px;
+        }
+
+        .status-msg.error { color: var(--error); }
+        .status-msg.info { color: var(--muted); }
+
+        .login-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            border-radius: 999px;
+            border: 1px solid #d8d5cc;
+            background: #fff;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .login-hint {
+            margin: 10px 0 0;
+            font-size: 11.5px;
+            color: var(--muted);
+        }
+
+        .login-hint a {
+            color: var(--muted);
+            text-decoration: underline;
+        }
+
+        /* Camera scan overlay */
+        .scanner-overlay {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 10;
+            display: none;
+            flex-direction: column;
+        }
+
+        .scanner-overlay.active { display: flex; }
+
+        .scanner-overlay video {
+            flex: 1;
+            width: 100%;
+            object-fit: cover;
+        }
+
+        .scanner-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 11;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .scanner-hint {
+            position: absolute;
+            bottom: 32px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+        }
+    </style>
+</head>
+<body>
+    <div class="backdrop" aria-hidden="true"></div>
+
+    <div class="card">
+        <div class="brand-row">
+            <span class="brand-q">Q</span>
+            <span class="brand-qr-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                    <line x1="14" y1="14" x2="14" y2="21"></line>
+                    <line x1="21" y1="14" x2="21" y2="21"></line>
+                    <line x1="17" y1="14" x2="17" y2="17"></line>
+                    <line x1="14" y1="17" x2="21" y2="17"></line>
+                </svg>
+            </span>
+        </div>
+
+        <h1 class="headline">Be our Guest!</h1>
+        <p class="intro">
+            Welcome to <strong>QRemember</strong>, your repository for all your precious
+            memories during events! Got an event QR Code? Scan or upload it below to be able to share your photos!
+        </p>
+
+        <div class="scan-panel">
+            <svg class="qr-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+                <line x1="14" y1="14" x2="14" y2="21"></line>
+                <line x1="21" y1="14" x2="21" y2="21"></line>
+                <line x1="17" y1="14" x2="17" y2="17"></line>
+                <line x1="14" y1="17" x2="21" y2="17"></line>
+            </svg>
+            <p class="drop-label">Drag and Drop / Copy and Paste</p>
+
+            <button type="button" id="uploadBtn" class="qr-btn primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 3v12"></path>
+                    <path d="M7 8l5-5 5 5"></path>
+                    <path d="M4 17v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"></path>
+                </svg>
+                Upload QR Code
+            </button>
+            <button type="button" id="scanBtn" class="qr-btn secondary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
+                    <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
+                    <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
+                    <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
+                </svg>
+                Scan QR Code
+            </button>
+            <input type="file" id="fileInput" accept="image/*" />
+        </div>
+
+        <p id="statusMsg" class="status-msg"></p>
+
+        <a href="/Shared/Onboarding/Login" class="login-btn">Login</a>
+        <p class="login-hint">Want to be a host? <a href="/Shared/Onboarding/Login">Login here</a></p>
+    </div>
+
+    <div class="scanner-overlay" id="scannerOverlay">
+        <button type="button" class="scanner-close" id="scannerClose" aria-label="Close scanner">&times;</button>
+        <video id="scannerVideo" playsinline muted></video>
+        <p class="scanner-hint">Point your camera at the event QR code</p>
+    </div>
+
+    <canvas id="scanCanvas" style="display:none;"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.1.1/dist/jsQR.js"></script>
+    <script>
+        const statusMsg = document.getElementById('statusMsg');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const scanBtn = document.getElementById('scanBtn');
+        const scannerOverlay = document.getElementById('scannerOverlay');
+        const scannerClose = document.getElementById('scannerClose');
+        const scannerVideo = document.getElementById('scannerVideo');
+        const scanCanvas = document.getElementById('scanCanvas');
+
+        let cameraStream = null;
+        let scanLoopHandle = null;
+
+        function setStatus(message, kind) {
+            statusMsg.textContent = message || '';
+            statusMsg.className = 'status-msg' + (kind ? ' ' + kind : '');
+        }
+
+        function setButtonsDisabled(disabled) {
+            uploadBtn.disabled = disabled;
+            scanBtn.disabled = disabled;
+        }
+
+        async function resolveDecodedText(decodedText) {
+            setStatus('Looking up that event…', 'info');
+            setButtonsDisabled(true);
+            try {
+                const response = await fetch('/?handler=ResolveCode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ decodedText })
+                });
+                const data = await response.json();
+                if (data.success && data.redirectUrl) {
+                    setStatus('Event found — redirecting…', 'info');
+                    window.location.href = data.redirectUrl;
+                } else {
+                    setStatus(data.message || 'That QR code could not be matched to an event.', 'error');
+                }
+            } catch (err) {
+                setStatus('Something went wrong reaching the server. Please try again.', 'error');
+            } finally {
+                setButtonsDisabled(false);
+            }
+        }
+
+        // --- Upload flow: decode a QR code from a chosen image file ---
+        uploadBtn.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files && fileInput.files[0];
+            if (file) decodeImageFile(file);
+        });
+
+        function decodeImageFile(file) {
+            setStatus('Reading QR code…', 'info');
+            const img = new Image();
+            const reader = new FileReader();
+            reader.onload = (e) => { img.src = e.target.result; };
+            reader.onerror = () => setStatus('Could not read that file.', 'error');
+            img.onload = () => {
+                const ctx = scanCanvas.getContext('2d');
+                scanCanvas.width = img.width;
+                scanCanvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                const imageData = ctx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
+                const result = window.jsQR ? window.jsQR(imageData.data, imageData.width, imageData.height) : null;
+                if (result && result.data) {
+                    resolveDecodedText(result.data);
+                } else {
+                    setStatus('No QR code found in that image. Try another photo.', 'error');
+                }
+                fileInput.value = '';
+            };
+            img.onerror = () => setStatus('That file could not be opened as an image.', 'error');
+            reader.readAsDataURL(file);
+        }
+
+        // Drag-and-drop / paste support onto the scan panel
+        const scanPanel = document.querySelector('.scan-panel');
+        scanPanel.addEventListener('dragover', (e) => e.preventDefault());
+        scanPanel.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const file = e.dataTransfer.files && e.dataTransfer.files[0];
+            if (file) decodeImageFile(file);
+        });
+        document.addEventListener('paste', (e) => {
+            const item = Array.from(e.clipboardData?.items || []).find(i => i.type.startsWith('image/'));
+            if (item) decodeImageFile(item.getAsFile());
+        });
+
+        // --- Scan flow: live camera QR detection ---
+        scanBtn.addEventListener('click', async () => {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                setStatus('Camera access is not supported on this browser. Try uploading instead.', 'error');
+                return;
+            }
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                scannerVideo.srcObject = cameraStream;
+                await scannerVideo.play();
+                scannerOverlay.classList.add('active');
+                setStatus('', null);
+                scanLoop();
+            } catch (err) {
+                setStatus('Could not access the camera. Check permissions and try again.', 'error');
+            }
+        });
+
+        function scanLoop() {
+            if (!scannerOverlay.classList.contains('active')) return;
+            if (scannerVideo.readyState === scannerVideo.HAVE_ENOUGH_DATA) {
+                const ctx = scanCanvas.getContext('2d');
+                scanCanvas.width = scannerVideo.videoWidth;
+                scanCanvas.height = scannerVideo.videoHeight;
+                ctx.drawImage(scannerVideo, 0, 0, scanCanvas.width, scanCanvas.height);
+                const imageData = ctx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
+                const result = window.jsQR ? window.jsQR(imageData.data, imageData.width, imageData.height) : null;
+                if (result && result.data) {
+                    closeScanner();
+                    resolveDecodedText(result.data);
+                    return;
+                }
+            }
+            scanLoopHandle = requestAnimationFrame(scanLoop);
+        }
+
+        function closeScanner() {
+            scannerOverlay.classList.remove('active');
+            if (scanLoopHandle) cancelAnimationFrame(scanLoopHandle);
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+        }
+
+        scannerClose.addEventListener('click', closeScanner);
+    </script>
+</body>
+</html>

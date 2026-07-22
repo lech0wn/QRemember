@@ -30,6 +30,7 @@ builder.Services.AddSingleton(_ =>
     return new Cloudinary(new Account(cloudName, apiKey, apiSecret));
 });
 builder.Services.AddScoped<ICloudinaryImageService, CloudinaryImageService>();
+builder.Services.AddScoped<IEventLookupService, EventLookupService>();
 
 builder.Services.Configure<FormOptions>(options =>
 {
@@ -37,10 +38,19 @@ builder.Services.Configure<FormOptions>(options =>
 });
 
 // Database — reads from user-secrets in development, environment variables in production
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString, npgsqlOptions =>
-        npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(10), errorCodesToAdd: null)));
+// Locally you can set UseInMemoryDb=true (via user-secrets) to work without Supabase access.
+if (builder.Environment.IsDevelopment() && builder.Configuration["UseInMemoryDb"] == "true")
+{
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseInMemoryDatabase("QRememberDev"));
+}
+else
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseNpgsql(connectionString, npgsqlOptions =>
+            npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(10), errorCodesToAdd: null)));
+}
 
 // ASP.NET Core Identity for organizer login
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -57,7 +67,30 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Shared/Onboarding/Login";
 });
 
+builder.Services.AddScoped<IEventLookupService, EventLookupService>();
+
 var app = builder.Build();
+
+// Seed a test Event when running against the in-memory DB, so guest pages have
+// something to look up without needing real Supabase access.
+if (app.Environment.IsDevelopment() && builder.Configuration["UseInMemoryDb"] == "true")
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    if (!db.Events.Any())
+    {
+        db.Events.Add(new Event
+        {
+            Name = "Dasigsilab Sports Fest",
+            EventCode = "TEST123",
+            EventDate = new DateTime(2026, 6, 9),
+            CreatedAt = DateTime.UtcNow,
+            IsActive = true,
+            OrganizerId = "dev-fake-organizer-id"
+        });
+        db.SaveChanges();
+    }
+}
 
 if (!app.Environment.IsDevelopment())
 {
