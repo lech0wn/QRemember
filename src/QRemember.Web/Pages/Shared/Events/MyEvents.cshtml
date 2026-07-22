@@ -63,13 +63,17 @@
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-            text-decoration: none;
-            cursor: pointer;
             transition: transform 0.12s;
         }
 
         .event-card:hover {
             transform: translateY(-2px);
+        }
+
+        .event-photo-link {
+            display: block;
+            text-decoration: none;
+            cursor: pointer;
         }
 
         .event-photo {
@@ -78,7 +82,7 @@
 
         .event-caption {
             text-align: center;
-            padding: 18px 16px 22px;
+            padding: 18px 16px 14px;
         }
 
         .event-caption .event-title {
@@ -93,6 +97,51 @@
             font-family: 'Inter', sans-serif;
             font-size: 13px;
             color: var(--accent);
+        }
+
+        .event-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 0 16px 18px;
+        }
+
+        .event-countdown {
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--accent);
+        }
+
+        .event-countdown.expired {
+            color: #E0857A;
+        }
+
+        .cancel-form {
+            margin: 0;
+        }
+
+        .btn-cancel-event {
+            background: none;
+            border: 1px solid rgba(245, 243, 236, 0.35);
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: #F5F3EC;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .btn-cancel-event:hover {
+            background: #B00020;
+            border-color: #B00020;
         }
 
         .empty-state {
@@ -124,16 +173,66 @@
             <div class="event-grid">
                 @foreach (var ev in Model.Events)
                 {
-                    <a class="event-card" asp-page="EventDetail" asp-route-name="@ev.Title">
-                        <div class="event-photo" style="height:@(ev.PhotoHeight)px;background:linear-gradient(160deg, @ev.GradientFrom, @ev.GradientTo);"></div>
-                        <div class="event-caption">
-                            <span class="event-title">@ev.Title</span>
-                            <span class="event-year"> &bull; @ev.Year</span>
+                    <div class="event-card">
+                        <a class="event-photo-link" asp-page="EventDetail" asp-route-code="@ev.EventCode">
+                            <div class="event-photo" style="height:@(ev.PhotoHeight)px;background:linear-gradient(160deg, @ev.GradientFrom, @ev.GradientTo);"></div>
+                            <div class="event-caption">
+                                <span class="event-title">@ev.Title</span>
+                                <span class="event-year"> &bull; @ev.Year</span>
+                            </div>
+                        </a>
+                        <div class="event-footer">
+                            <span class="event-countdown" data-expires-utc="@ev.ExpiresAtUtc.ToString("o")">Calculating&hellip;</span>
+                            <form method="post" asp-page-handler="Cancel" asp-route-code="@ev.EventCode" class="cancel-form" data-event-title="@ev.Title">
+                                <button type="submit" class="btn-cancel-event">Cancel Event</button>
+                            </form>
                         </div>
-                    </a>
+                    </div>
                 }
             </div>
         }
     </div>
+
+    <script>
+        (function () {
+            var countdowns = document.querySelectorAll('.event-countdown');
+
+            function render() {
+                var now = Date.now();
+                countdowns.forEach(function (el) {
+                    var expires = new Date(el.dataset.expiresUtc).getTime();
+                    var remainingMs = expires - now;
+
+                    if (remainingMs <= 0) {
+                        el.textContent = 'Expired';
+                        el.classList.add('expired');
+                        return;
+                    }
+
+                    var totalMinutes = Math.floor(remainingMs / 60000);
+                    var days = Math.floor(totalMinutes / 1440);
+                    var hours = Math.floor((totalMinutes % 1440) / 60);
+                    var minutes = totalMinutes % 60;
+
+                    el.textContent = 'Expires in ' + days + 'd ' + hours + 'h ' + minutes + 'm';
+                });
+            }
+
+            render();
+            setInterval(render, 30000);
+        })();
+
+        (function () {
+            var forms = document.querySelectorAll('.cancel-form');
+            forms.forEach(function (form) {
+                form.addEventListener('submit', function (e) {
+                    var title = form.dataset.eventTitle || 'this event';
+                    if (!confirm('Cancel and permanently delete "' + title + '"? This cannot be undone.')) {
+                        e.preventDefault();
+                    }
+                });
+            });
+        })();
+    </script>
 </body>
 </html>

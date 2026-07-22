@@ -1,8 +1,10 @@
 @page
 @model EventDetailModel
+@using System.Security.Claims
 @{
     ViewData["Title"] = "Moderate Photos";
     Layout = null;
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous";
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -314,6 +316,12 @@
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
             padding: 18px;
             text-align: left;
+            cursor: move;
+        }
+
+        .coachmark.dragging {
+            cursor: grabbing;
+            user-select: none;
         }
 
         .coachmark h2 {
@@ -401,7 +409,10 @@
     <partial name="_EventsNavBar" />
 
     <div class="layout" style="position:relative;">
-        <a asp-page="MyEvents" class="back-link">&#8592; Go back to My Events</a>
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <a asp-page="MyEvents" class="back-link" style="margin-bottom:0;">&#8592; Go back to My Events</a>
+            <a asp-page="EventReady" asp-route-code="@Model.EventCode" class="back-link" style="margin-bottom:0; border:1px solid #D8D4C8; border-radius:20px; padding:7px 14px; color:var(--text);">View QR &amp; Link</a>
+        </div>
 
         <div class="event-header">
             <div class="hashtag">@Model.Hashtag</div>
@@ -470,7 +481,8 @@
 
     <script>
         (function () {
-            var storageKey = 'qremember_hide_coachmark_manage_gallery';
+            var userId = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(currentUserId));
+            var storageKey = 'qremember_hide_coachmark_manage_gallery_' + userId;
             var coachmark = document.getElementById('coachmark');
             var okayBtn = document.getElementById('coachmark-okay');
             var dontShow = document.getElementById('coachmark-dont-show');
@@ -485,7 +497,48 @@
                 }
                 coachmark.style.display = 'none';
             });
+
+            makeDraggable(coachmark);
         })();
+
+        function makeDraggable(el) {
+            var dragging = false;
+            var offsetX = 0;
+            var offsetY = 0;
+
+            el.addEventListener('pointerdown', function (e) {
+                if (e.target.closest('button, input, label, a')) {
+                    return;
+                }
+                var rect = el.getBoundingClientRect();
+                offsetX = e.clientX - rect.left;
+                offsetY = e.clientY - rect.top;
+                el.style.position = 'fixed';
+                el.style.left = rect.left + 'px';
+                el.style.top = rect.top + 'px';
+                el.style.right = 'auto';
+                el.style.margin = '0';
+                dragging = true;
+                el.classList.add('dragging');
+                el.setPointerCapture(e.pointerId);
+            });
+
+            el.addEventListener('pointermove', function (e) {
+                if (!dragging) {
+                    return;
+                }
+                el.style.left = (e.clientX - offsetX) + 'px';
+                el.style.top = (e.clientY - offsetY) + 'px';
+            });
+
+            function stopDragging() {
+                dragging = false;
+                el.classList.remove('dragging');
+            }
+
+            el.addEventListener('pointerup', stopDragging);
+            el.addEventListener('pointercancel', stopDragging);
+        }
 
         (function () {
             var grid = document.getElementById('photo-grid');

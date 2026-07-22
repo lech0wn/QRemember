@@ -1,8 +1,10 @@
 @page
 @model CreateEventModel
+@using System.Security.Claims
 @{
     ViewData["Title"] = "Create Event";
     Layout = null;
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous";
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -176,6 +178,12 @@
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
             padding: 18px;
             text-align: left;
+            cursor: move;
+        }
+
+        .coachmark.dragging {
+            cursor: grabbing;
+            user-select: none;
         }
 
         .coachmark h2 {
@@ -257,20 +265,22 @@
             <p class="subtitle">We'll use this to create your gallery</p>
         </div>
 
-        <form method="get" asp-page="EventReady" class="event-form">
+        <form method="post" asp-page="CreateEvent" class="event-form">
+            <div asp-validation-summary="All" style="color:#B00020; font-size:13px; margin-bottom:16px;"></div>
+
             <div class="form-group">
                 <label for="Name">Event Name</label>
-                <input type="text" id="Name" name="name" placeholder="e.g. Jane and John's Wedding 2026" required />
+                <input type="text" asp-for="Name" placeholder="e.g. Jane and John's Wedding 2026" required />
             </div>
 
             <div class="form-group">
                 <label for="Description">Description</label>
-                <textarea id="Description" name="description" placeholder="Describe the event..."></textarea>
+                <textarea asp-for="Description" placeholder="Describe the event..."></textarea>
             </div>
 
             <div class="form-group">
                 <label for="EventDate">Date &amp; Time of the Event</label>
-                <input type="date" id="EventDate" name="eventDate" />
+                <input type="date" asp-for="EventDate" required />
             </div>
 
             <button type="submit" class="btn-next">Next &#8594;</button>
@@ -292,7 +302,8 @@
 
     <script>
         (function () {
-            var storageKey = 'qremember_hide_coachmark_create_event';
+            var userId = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(currentUserId));
+            var storageKey = 'qremember_hide_coachmark_create_event_' + userId;
             var coachmark = document.getElementById('coachmark');
             var okayBtn = document.getElementById('coachmark-okay');
             var dontShow = document.getElementById('coachmark-dont-show');
@@ -307,7 +318,48 @@
                 }
                 coachmark.style.display = 'none';
             });
+
+            makeDraggable(coachmark);
         })();
+
+        function makeDraggable(el) {
+            var dragging = false;
+            var offsetX = 0;
+            var offsetY = 0;
+
+            el.addEventListener('pointerdown', function (e) {
+                if (e.target.closest('button, input, label, a')) {
+                    return;
+                }
+                var rect = el.getBoundingClientRect();
+                offsetX = e.clientX - rect.left;
+                offsetY = e.clientY - rect.top;
+                el.style.position = 'fixed';
+                el.style.left = rect.left + 'px';
+                el.style.top = rect.top + 'px';
+                el.style.right = 'auto';
+                el.style.margin = '0';
+                dragging = true;
+                el.classList.add('dragging');
+                el.setPointerCapture(e.pointerId);
+            });
+
+            el.addEventListener('pointermove', function (e) {
+                if (!dragging) {
+                    return;
+                }
+                el.style.left = (e.clientX - offsetX) + 'px';
+                el.style.top = (e.clientY - offsetY) + 'px';
+            });
+
+            function stopDragging() {
+                dragging = false;
+                el.classList.remove('dragging');
+            }
+
+            el.addEventListener('pointerup', stopDragging);
+            el.addEventListener('pointercancel', stopDragging);
+        }
     </script>
 </body>
 </html>

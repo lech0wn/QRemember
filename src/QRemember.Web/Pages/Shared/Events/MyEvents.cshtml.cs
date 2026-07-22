@@ -1,19 +1,63 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
+using QRemember.Web.Data;
+using QRemember.Web.Models;
 
 public class MyEventsModel : PageModel
 {
-    // Frontend-only sample data until events are actually persisted and queried per organizer.
-    public record SampleEvent(string Title, int Year, string GradientFrom, string GradientTo, int PhotoHeight);
+    private readonly AppDbContext _db;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public List<SampleEvent> Events { get; } = new()
+    // Cycled purely for card visuals until event cover photos exist.
+    private static readonly (string From, string To)[] Gradients =
     {
-        new("The Birthday Party of Someone", 2025, "#4A4139", "#1C1C1C", 260),
-        new("Laag-laag lang", 2023, "#2E3238", "#111417", 230),
-        new("Sweet 16th Birthday", 2023, "#41362A", "#1C1C1C", 220),
-        new("Bachelorette Party at the Beach", 2025, "#1F4A4D", "#12262A", 240),
+        ("#4A4139", "#1C1C1C"),
+        ("#2E3238", "#111417"),
+        ("#41362A", "#1C1C1C"),
+        ("#1F4A4D", "#12262A"),
     };
 
-    public void OnGet()
+    public MyEventsModel(AppDbContext db, UserManager<ApplicationUser> userManager)
     {
+        _db = db;
+        _userManager = userManager;
+    }
+
+    public record EventCardViewModel(string EventCode, string Title, int Year, string GradientFrom, string GradientTo, int PhotoHeight, DateTime ExpiresAtUtc);
+
+    public List<EventCardViewModel> Events { get; } = new();
+
+    public async Task OnGetAsync()
+    {
+        var organizerId = _userManager.GetUserId(User);
+
+        var events = await _db.Events
+            .Where(e => e.OrganizerId == organizerId)
+            .OrderByDescending(e => e.CreatedAt)
+            .ToListAsync();
+
+        for (var i = 0; i < events.Count; i++)
+        {
+            var (from, to) = Gradients[i % Gradients.Length];
+            Events.Add(new EventCardViewModel(events[i].EventCode, events[i].Name, events[i].EventDate.Year, from, to, 220, events[i].ExpiresAt));
+        }
+    }
+
+    public async Task<IActionResult> OnPostCancelAsync(string code)
+    {
+        var organizerId = _userManager.GetUserId(User);
+
+        var organizerEvent = await _db.Events
+            .FirstOrDefaultAsync(e => e.EventCode == code && e.OrganizerId == organizerId);
+
+        if (organizerEvent is not null)
+        {
+            _db.Events.Remove(organizerEvent);
+            await _db.SaveChangesAsync();
+        }
+
+        return RedirectToPage();
     }
 }

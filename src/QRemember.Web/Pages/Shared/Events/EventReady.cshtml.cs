@@ -1,31 +1,55 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using QRCoder;
+using Microsoft.EntityFrameworkCore;
+using QRemember.Web.Data;
+using QRemember.Web.Models;
+using QRemember.Web.Services;
 
 public class EventReadyModel : PageModel
 {
+    private readonly AppDbContext _db;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IQrCodeService _qrCodeService;
+
+    public EventReadyModel(AppDbContext db, UserManager<ApplicationUser> userManager, IQrCodeService qrCodeService)
+    {
+        _db = db;
+        _userManager = userManager;
+        _qrCodeService = qrCodeService;
+    }
+
     public string EventName { get; private set; } = string.Empty;
     public string Hashtag { get; private set; } = string.Empty;
     public string EventLink { get; private set; } = string.Empty;
     public string QrCodeDataUri { get; private set; } = string.Empty;
+    public DateTime ExpiresAt { get; private set; }
 
-    // Frontend-only placeholder: no Event row is created or persisted yet.
-    public void OnGet(string? name)
+    public async Task<IActionResult> OnGetAsync(string? code)
     {
-        EventName = string.IsNullOrWhiteSpace(name) ? "Your Event" : name.Trim();
-
-        var slug = new string(EventName.Where(char.IsLetterOrDigit).ToArray());
-        if (slug.Length == 0)
+        if (string.IsNullOrWhiteSpace(code))
         {
-            slug = "YourEvent";
+            return RedirectToPage("CreateEvent");
         }
 
-        Hashtag = "#" + slug;
-        EventLink = $"myqreventchuchu.com/{slug.ToLowerInvariant()}";
+        var organizerId = _userManager.GetUserId(User);
+        var organizerEvent = await _db.Events
+            .FirstOrDefaultAsync(e => e.EventCode == code && e.OrganizerId == organizerId);
 
-        using var qrGenerator = new QRCodeGenerator();
-        using var qrData = qrGenerator.CreateQrCode($"https://{EventLink}", QRCodeGenerator.ECCLevel.Q);
-        var pngQr = new PngByteQRCode(qrData);
-        var qrBytes = pngQr.GetGraphic(20);
-        QrCodeDataUri = $"data:image/png;base64,{Convert.ToBase64String(qrBytes)}";
+        if (organizerEvent is null || organizerEvent.QrCodeUrl is null)
+        {
+            return RedirectToPage("CreateEvent");
+        }
+
+        EventName = organizerEvent.Name;
+
+        var slug = new string(EventName.Where(char.IsLetterOrDigit).ToArray());
+        Hashtag = "#" + (slug.Length > 0 ? slug : "YourEvent");
+
+        EventLink = organizerEvent.QrCodeUrl;
+        QrCodeDataUri = _qrCodeService.GeneratePngDataUri(EventLink);
+        ExpiresAt = organizerEvent.ExpiresAt;
+
+        return Page();
     }
 }
