@@ -1,0 +1,108 @@
+@page "/e/{code}"
+@model QRemember.Web.Pages.Guest.IndexModel
+@{
+    ViewData["Title"] = Model.EventFound ? Model.EventName : "Event Not Found";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --accent: #B8975A;
+            --bg: #FAF9F6;
+            --text: #1C1C1C;
+            --muted: #8C8C8C;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            min-height: 100%;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 32px;
+        }
+
+        .event-card {
+            width: 100%;
+            max-width: 420px;
+            background: #fff;
+            border: 1px solid #E4E1D8;
+            border-radius: 10px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+            padding: 32px 28px;
+            text-align: center;
+        }
+
+        .event-card h1 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            font-size: 28px;
+            color: var(--accent);
+            margin: 0 0 12px;
+            word-break: break-word;
+        }
+
+        .event-date {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 14px;
+            color: var(--text);
+            margin: 0 0 18px;
+        }
+
+        .event-description {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text);
+            margin: 0;
+            white-space: pre-line;
+        }
+    </style>
+</head>
+<body>
+    @if (Model.EventFound)
+    {
+        <div class="event-card">
+            <h1>@Model.EventName</h1>
+            <p class="event-date">@Model.EventDate.ToString("MMMM d, yyyy")</p>
+            @if (!string.IsNullOrWhiteSpace(Model.Description))
+            {
+                <p class="event-description">@Model.Description</p>
+            }
+        </div>
+    }
+    else if (Model.EventExpired)
+    {
+        <div class="event-card">
+            <h1>This Event Has Expired</h1>
+            <p class="event-description">This event's gallery is no longer available.</p>
+        </div>
+    }
+    else
+    {
+        <div class="event-card">
+            <h1>Event Not Found</h1>
+            <p class="event-description">This QR code doesn't match an active event.</p>
+        </div>
+    }
+</body>
+</html>

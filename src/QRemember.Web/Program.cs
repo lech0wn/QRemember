@@ -3,11 +3,17 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
 using QRemember.Web.Data;
 using QRemember.Web.Models;
+using QRemember.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Razor Pages
-builder.Services.AddRazorPages();
+// Razor Pages — organizer pages require an authenticated organizer, guest pages stay public
+builder.Services.AddRazorPages(options =>
+{
+    options.Conventions.AuthorizeFolder("/Shared/Events");
+});
+
+builder.Services.AddSingleton<IQrCodeService, QrCodeService>();
 
 // Database — reads from user-secrets in development, environment variables in production
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -36,9 +42,11 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
     app.UseHsts();
+    app.UseHttpsRedirection();
 }
+// In Development, guests scan the QR code over plain HTTP from their phone on the LAN;
+// redirecting to HTTPS here would hit the untrusted local dev cert and fail on their device.
 
-app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
