@@ -49,7 +49,7 @@ namespace QRemember.Web.Pages
             return new JsonResult(new ScanResponse
             {
                 Success = true,
-                RedirectUrl = Url.Page("/Gallery", new { eventCode })
+                RedirectUrl = Url.Page("/Shared/GuestViews/GuestGallery", new { eventCode })
             });
         }
 

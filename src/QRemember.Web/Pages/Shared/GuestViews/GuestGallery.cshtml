@@ -1,0 +1,220 @@
+@page "{eventCode}"
+@model QRemember.Web.Pages.GuestGalleryModel
+@{
+    Layout = null; // Standalone page. Swap in your _Layout.cshtml if you want the shared chrome,
+                   // then remove the <html>/<head>/<body> wrapper below.
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QRemember - Guest Gallery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #B8975A;
+            --ink: #2B2B2B;
+            --ink-soft: #6B6B6B;
+            --page-bg: #FFFFFF;
+            --card-bg: #FBF9F5;
+            --card-border: #E4DFD6;
+            --radius-lg: 12px;
+            --radius-md: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--page-bg);
+            font-family: 'Montserrat', sans-serif;
+            color: var(--ink);
+            display: flex;
+            justify-content: center;
+            padding: 24px 16px 48px;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 28px 24px 32px;
+        }
+
+        /* Logo lockup */
+        .brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .brand img {
+            width: 40px;
+            height: 40px;
+        }
+
+        .brand-word {
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            font-size: 22px;
+            letter-spacing: 1px;
+            color: var(--ink);
+        }
+
+        .brand-word .cap {
+            font-size: 28px;
+        }
+
+        .exhibiting-label {
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            color: var(--ink);
+            margin: 0 0 6px;
+        }
+
+        .hashtag {
+            text-align: center;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 22px;
+            color: var(--gold);
+            margin: 0 0 10px;
+            word-break: break-word;
+        }
+
+        .tagline {
+            text-align: center;
+            font-style: italic;
+            font-size: 12.5px;
+            line-height: 1.5;
+            color: var(--ink-soft);
+            margin: 0 0 20px;
+            padding: 0 8px;
+        }
+
+        .share-btn {
+            display: block;
+            width: 100%;
+            background: #17171A;
+            color: #FFFFFF;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 13px 20px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .share-btn:hover {
+            background: #000000;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid var(--card-border);
+            margin: 24px 0 18px;
+        }
+
+        .section-heading {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 20px;
+            color: var(--gold);
+            margin: 0 0 16px;
+        }
+
+        .submission-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .submission-item {
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background: #EDEAE2;
+        }
+
+        .submission-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .submission-meta {
+            font-size: 11px;
+            color: var(--ink-soft);
+            padding: 8px 2px 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            font-size: 13px;
+            color: var(--ink-soft);
+            padding: 24px 8px;
+        }
+
+        /* Desktop refinements */
+        @@media (min-width: 900px) {
+            .card {
+                max-width: 560px;
+                padding: 36px 32px 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="brand">
+            <img src="~/images/logo.png" alt="QRemember" />
+            <span class="brand-word"><span class="cap">Q</span>REMEMBER</span>
+        </div>
+
+        <p class="exhibiting-label">NOW EXHIBITING</p>
+        <p class="hashtag">#@Model.EventHashtag</p>
+        <p class="tagline">A place to share photos from the event. Join in and add your own photos.</p>
+
+        <a class="share-btn" href="/SharePhotos/@Model.EventCode">SHARE PHOTOS</a>
+
+        <hr class="divider" />
+
+        <h2 class="section-heading">Recent Submissions</h2>
+
+        @if (Model.Photos.Count == 0)
+        {
+            <p class="empty-state">No photos yet — be the first to share!</p>
+        }
+        else
+        {
+            <div class="submission-feed">
+                @foreach (var photo in Model.Photos)
+                {
+                    <div class="submission-item">
+                        <img src="@photo.Url" alt="Event submission" loading="lazy" />
+                        @if (!string.IsNullOrWhiteSpace(photo.GuestName))
+                        {
+                            <p class="submission-meta">Shared by @photo.GuestName</p>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</body>
+</html>
