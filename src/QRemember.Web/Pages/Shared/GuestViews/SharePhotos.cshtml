@@ -1,0 +1,484 @@
+@page "{eventCode}"
+@model QRemember.Web.Pages.SharePhotosModel
+@{
+    Layout = null; // Standalone page. Swap in your _Layout.cshtml if you want the shared chrome,
+                   // then remove the <html>/<head>/<body> wrapper below.
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QRemember - Share Photos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #B8975A;
+            --ink: #2B2B2B;
+            --ink-soft: #6B6B6B;
+            --page-bg: #F5F1E8;
+            --card-border: #E4DFD6;
+            --danger: #B23B3B;
+            --radius-lg: 10px;
+            --radius-md: 6px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--page-bg);
+            font-family: 'Montserrat', sans-serif;
+            color: var(--ink);
+            display: flex;
+            justify-content: center;
+            padding: 32px 16px 64px;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 480px;
+        }
+
+        /* Logo lockup */
+        .brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+
+        .brand img {
+            width: 40px;
+            height: 40px;
+        }
+
+        .brand-word {
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            font-size: 22px;
+            letter-spacing: 1px;
+            color: var(--ink);
+        }
+
+        .brand-word .cap {
+            font-size: 28px;
+        }
+
+        /* Headline block */
+        .headline {
+            text-align: center;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 34px;
+            color: var(--gold);
+            margin: 0 0 4px;
+        }
+
+        .subhead {
+            text-align: center;
+            font-style: italic;
+            font-size: 13px;
+            color: var(--ink-soft);
+            margin: 0 0 20px;
+        }
+
+        .hashtag {
+            text-align: center;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 20px;
+            color: var(--gold);
+            margin: 0 0 24px;
+            word-break: break-word;
+        }
+
+        /* Guest name field */
+        .field-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            color: var(--ink);
+            margin-bottom: 4px;
+        }
+
+        .field-hint {
+            display: block;
+            font-size: 11px;
+            color: var(--ink-soft);
+            margin-bottom: 6px;
+        }
+
+        .guest-name-input {
+            width: 100%;
+            border: none;
+            border-bottom: 1px solid var(--card-border);
+            background: transparent;
+            padding: 6px 2px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            color: var(--ink);
+            margin-bottom: 24px;
+        }
+
+        .guest-name-input:focus {
+            outline: none;
+            border-bottom-color: var(--gold);
+        }
+
+        /* Dropzone */
+        .dropzone {
+            width: 100%;
+            background: #FFFFFF;
+            border: 1.5px solid var(--gold);
+            border-radius: var(--radius-lg);
+            padding: 44px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .dropzone:hover,
+        .dropzone.drag-over {
+            background: #FBF8F2;
+            box-shadow: 0 0 0 3px rgba(184, 151, 90, 0.25);
+        }
+
+        .dropzone svg {
+            color: var(--gold);
+        }
+
+        .dropzone-label {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--ink);
+        }
+
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Selection counter + status */
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 14px;
+            font-size: 12px;
+            color: var(--ink-soft);
+        }
+
+        .status-row.error {
+            color: var(--danger);
+        }
+
+        /* Photo grid */
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .photo-tile {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background: #E9E4D8;
+        }
+
+        .photo-tile img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .photo-tile .delete-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(20, 20, 20, 0.65);
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            line-height: 1;
+            font-size: 14px;
+            padding: 0;
+        }
+
+        .photo-tile .delete-btn:hover {
+            background: var(--danger);
+        }
+
+        /* Add more / upload button at the end of the grid */
+        .add-more-btn {
+            width: 100%;
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: var(--gold);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 999px;
+            padding: 13px 20px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s ease, transform 0.1s ease;
+        }
+
+        .add-more-btn:hover {
+            background: #A5834C;
+        }
+
+        .add-more-btn:active {
+            transform: scale(0.99);
+        }
+
+        .add-more-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .toast {
+            margin-top: 14px;
+            text-align: center;
+            font-size: 12px;
+            min-height: 16px;
+        }
+
+        .toast.error { color: var(--danger); }
+        .toast.success { color: #3B7A4A; }
+
+        /* Mobile refinements (screenshot reference is ~360px wide) */
+        @@media (max-width: 420px) {
+            .headline {
+                font-size: 28px;
+            }
+
+            .hashtag {
+                font-size: 17px;
+            }
+
+            .dropzone {
+                padding: 36px 16px;
+            }
+
+            .photo-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+        }
+
+        /* Desktop refinements - a little more breathing room */
+        @@media (min-width: 900px) {
+            .page {
+                max-width: 560px;
+            }
+
+            .photo-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="brand">
+            <img src="~/images/logo.png" alt="QRemember" />
+            <span class="brand-word"><span class="cap">Q</span>REMEMBER</span>
+        </div>
+
+        <h1 class="headline">Share Photos</h1>
+        <p class="subhead">Upload your photos to the event album</p>
+        <p class="hashtag">#@Model.EventHashtag</p>
+
+        <label class="field-label" for="guestName">GUEST NAME (OPTIONAL)</label>
+        <span class="field-hint">Leave blank for anonymous contribution</span>
+        <input type="text" id="guestName" class="guest-name-input" placeholder="" autocomplete="name" maxlength="80" />
+
+        <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Choose photos to upload">
+            <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M6 15a3 3 0 0 1 3-3h3.2l1.4-2.6A2 2 0 0 1 15.4 8h6.2M38 20v13a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="20" cy="24" r="7" stroke="currentColor" stroke-width="2"/>
+                <path d="M33 6v10M28 11h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span class="dropzone-label">CHOOSE PHOTOS</span>
+            <input type="file" id="fileInput" class="visually-hidden" accept="image/*" multiple />
+        </div>
+
+        <div class="status-row" id="statusRow">
+            <span id="selectionCount">0 of @Model.MaxPhotos photos</span>
+        </div>
+
+        <div class="photo-grid" id="photoGrid"></div>
+
+        <button type="button" class="add-more-btn" id="submitBtn" hidden>Submit</button>
+
+        <p class="toast" id="toast" role="status" aria-live="polite"></p>
+    </div>
+
+    <script>
+        (function () {
+            "use strict";
+
+            const MAX_PHOTOS = @Model.MaxPhotos;
+            const EVENT_CODE = @Html.Raw(Json.Serialize(Model.EventCode));
+
+            const dropzone = document.getElementById("dropzone");
+            const fileInput = document.getElementById("fileInput");
+            const photoGrid = document.getElementById("photoGrid");
+            const selectionCount = document.getElementById("selectionCount");
+            const statusRow = document.getElementById("statusRow");
+            const submitBtn = document.getElementById("submitBtn");
+            const toast = document.getElementById("toast");
+            const guestNameInput = document.getElementById("guestName");
+
+            // Each entry: { tile, file, previewUrl } - held in memory only, nothing is sent anywhere
+            const photos = [];
+
+            function setToast(message, type) {
+                toast.textContent = message || "";
+                toast.classList.remove("error", "success");
+                if (type) toast.classList.add(type);
+            }
+
+            function updateCount() {
+                selectionCount.textContent = photos.length + " of " + MAX_PHOTOS + " photos";
+                statusRow.classList.toggle("error", photos.length >= MAX_PHOTOS);
+                submitBtn.hidden = photos.length === 0;
+            }
+
+            function createTile(previewUrl) {
+                const tile = document.createElement("div");
+                tile.className = "photo-tile";
+
+                const img = document.createElement("img");
+                img.src = previewUrl;
+                img.alt = "Selected photo";
+                tile.appendChild(img);
+
+                const deleteBtn = document.createElement("button");
+                deleteBtn.type = "button";
+                deleteBtn.className = "delete-btn";
+                deleteBtn.setAttribute("aria-label", "Remove photo");
+                deleteBtn.textContent = "\u00D7";
+                tile.appendChild(deleteBtn);
+
+                photoGrid.appendChild(tile);
+                return { tile, deleteBtn };
+            }
+
+            function addPhoto(file) {
+                if (photos.length >= MAX_PHOTOS) return;
+
+                const previewUrl = URL.createObjectURL(file);
+                const { tile, deleteBtn } = createTile(previewUrl);
+
+                const entry = { tile, file, previewUrl };
+                photos.push(entry);
+                updateCount();
+
+                deleteBtn.addEventListener("click", () => removePhoto(entry));
+            }
+
+            function removePhoto(entry) {
+                const index = photos.indexOf(entry);
+                if (index === -1) return;
+
+                URL.revokeObjectURL(entry.previewUrl);
+                entry.tile.remove();
+                photos.splice(index, 1);
+                updateCount();
+            }
+
+            function handleFiles(fileList) {
+                const files = Array.from(fileList).filter((f) => f.type.startsWith("image/"));
+                if (files.length === 0) return;
+
+                const remaining = MAX_PHOTOS - photos.length;
+                if (remaining <= 0) {
+                    setToast("You've reached the " + MAX_PHOTOS + "-photo limit.", "error");
+                    return;
+                }
+
+                if (files.length > remaining) {
+                    setToast("Only " + remaining + " more photo(s) can be added (max " + MAX_PHOTOS + ").", "error");
+                }
+
+                files.slice(0, remaining).forEach((file) => addPhoto(file));
+            }
+
+            dropzone.addEventListener("click", () => fileInput.click());
+            dropzone.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    fileInput.click();
+                }
+            });
+
+            fileInput.addEventListener("change", (e) => {
+                handleFiles(e.target.files);
+                fileInput.value = "";
+            });
+
+            submitBtn.addEventListener("click", () => {
+                // TODO: this is where you'd actually send `photos` (each entry has .file)
+                // and guestNameInput.value to your backend once it's wired up.
+                setToast("Thanks! Your " + photos.length + " photo(s) were submitted.", "success");
+                submitBtn.disabled = true;
+            });
+
+            ["dragenter", "dragover"].forEach((evt) => {
+                dropzone.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    dropzone.classList.add("drag-over");
+                });
+            });
+
+            ["dragleave", "drop"].forEach((evt) => {
+                dropzone.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    dropzone.classList.remove("drag-over");
+                });
+            });
+
+            dropzone.addEventListener("drop", (e) => {
+                if (e.dataTransfer && e.dataTransfer.files) handleFiles(e.dataTransfer.files);
+            });
+
+            updateCount();
+        })();
+    </script>
+</body>
+</html>
