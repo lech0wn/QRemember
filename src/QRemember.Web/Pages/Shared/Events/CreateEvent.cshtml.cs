@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore;
 using QRemember.Web.Data;
 using QRemember.Web.Models;
 
+namespace QRemember.Web.Pages.Shared.Events;
+
 public class CreateEventModel : PageModel
 {
     private readonly AppDbContext _db;
@@ -55,8 +57,8 @@ public class CreateEventModel : PageModel
 
         var eventCode = await GenerateUniqueEventCodeAsync(Name);
         var guestOrigin = ResolveGuestOrigin();
-        var guestLink = Url.Page("/Guest/Index", pageHandler: null, values: new { code = eventCode }, protocol: guestOrigin.Scheme, host: guestOrigin.Authority)
-            ?? $"{guestOrigin.Scheme}://{guestOrigin.Authority}/e/{eventCode}";
+        var guestLink = Url.Page("/Guest/GuestEventGallery", pageHandler: null, values: new { code = eventCode }, protocol: guestOrigin.Scheme, host: guestOrigin.Authority)
+            ?? $"{guestOrigin.Scheme}://{guestOrigin.Authority}/Guest/GuestEventGallery/{eventCode}";
 
         var newEvent = new Event
         {

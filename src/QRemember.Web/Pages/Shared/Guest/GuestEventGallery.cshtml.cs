@@ -4,11 +4,13 @@ using Microsoft.EntityFrameworkCore;
 using QRemember.Web.Data;
 using QRemember.Web.Models;
 
-public class EventGalleryModel : PageModel
+namespace QRemember.Web.Pages.Guest;
+
+public class GuestEventGalleryModel : PageModel
 {
     private readonly AppDbContext _db;
 
-    public EventGalleryModel(AppDbContext db)
+    public GuestEventGalleryModel(AppDbContext db)
     {
         _db = db;
     }
@@ -20,6 +22,11 @@ public class EventGalleryModel : PageModel
     public string EventDateDisplay { get; private set; } = string.Empty;
     public string OrganizerDisplayName { get; private set; } = string.Empty;
     public string? HeroImageUrl { get; private set; }
+
+    // Carried over from the GuestGallery stub's branded header concept.
+    // Currently just mirrors EventCode since there's no dedicated Hashtag
+    // column on Event yet — see note below if the team wants a real one.
+    public string EventHashtag { get; private set; } = string.Empty;
     public IReadOnlyList<GalleryPhoto> Photos { get; private set; } = Array.Empty<GalleryPhoto>();
 
     public async Task<IActionResult> OnGetAsync(string code, CancellationToken cancellationToken)
@@ -43,6 +50,7 @@ public class EventGalleryModel : PageModel
 
         EventName = eventEntity.Name;
         EventCode = eventEntity.EventCode;
+        EventHashtag = eventEntity.EventCode;
         EventDateDisplay = eventEntity.EventDate.ToString("MMMM d yyyy");
         OrganizerDisplayName = eventEntity.Organizer?.DisplayName
             ?? eventEntity.Organizer?.Email
