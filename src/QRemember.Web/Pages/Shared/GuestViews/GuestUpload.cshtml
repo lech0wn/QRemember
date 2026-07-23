@@ -1,0 +1,578 @@
+@page
+@model QRemember.Web.Pages.GuestUploadModel
+@{
+    Layout = null; // Standalone page. Swap in your _Layout.cshtml if you want the shared chrome,
+                   // then remove the <html>/<head>/<body> wrapper below.
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QRemember - Guest Upload</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #B8975A;
+            --ink: #2B2B2B;
+            --ink-soft: #565656;
+            --card-bg: #FDFCFA;
+            --border-soft: #E4DFD6;
+            --black: #17171A;
+            --radius-lg: 12px;
+            --radius-md: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Montserrat', sans-serif;
+            color: var(--ink);
+            padding: 24px;
+            position: relative;
+        }
+
+        /* Full-bleed background image, forced black & white per style guide */
+        .page-background {
+            position: fixed;
+            inset: 0;
+            background-image: url('/images/auth-pic.jpg');
+            background-size: cover;
+            background-position: center;
+            filter: grayscale(100%);
+            z-index: -1;
+        }
+
+        .card {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 40px 40px 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .logo-mark {
+            width: 64px;
+            height: 64px;
+            flex-shrink: 0;
+        }
+
+        .headline {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 30px;
+            margin: 0;
+            color: var(--ink);
+        }
+
+        .intro {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--ink-soft);
+            margin: 0 0 24px;
+        }
+
+        .intro strong {
+            color: var(--ink);
+        }
+
+        .scan-box {
+            background: var(--black);
+            border-radius: var(--radius-lg);
+            padding: 32px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 260px;
+            transition: box-shadow 0.15s ease;
+        }
+
+        .scan-box.drag-over {
+            box-shadow: 0 0 0 3px var(--gold);
+        }
+
+        .scan-box-inner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .qr-icon {
+            color: #FFFFFF;
+            margin-bottom: 4px;
+        }
+
+        .drop-label {
+            color: #FFFFFF;
+            font-size: 13px;
+            margin: 0 0 14px;
+            text-align: center;
+        }
+
+        .scan-btn {
+            width: 100%;
+            max-width: 260px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: #FFFFFF;
+            color: var(--ink);
+            border: none;
+            border-radius: 999px;
+            padding: 11px 20px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease, transform 0.1s ease;
+        }
+
+        .scan-btn:hover {
+            background: var(--gold);
+            color: #FFFFFF;
+        }
+
+        .scan-btn:active {
+            transform: scale(0.98);
+        }
+
+        .scan-btn--ghost {
+            background: transparent;
+            border: 1px solid #FFFFFF;
+            color: #FFFFFF;
+            margin-top: 12px;
+        }
+
+        .scan-btn--ghost:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #FFFFFF;
+        }
+
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Camera scanning state */
+        .scan-box-camera {
+            display: none;
+            position: relative;
+            width: 100%;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .scan-box-camera.is-active {
+            display: flex;
+        }
+
+        .scan-box-inner.is-hidden {
+            display: none;
+        }
+
+        #cameraVideo {
+            width: 100%;
+            max-width: 320px;
+            border-radius: var(--radius-md);
+            background: #000;
+        }
+
+        .camera-frame {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(220px, 60%);
+            aspect-ratio: 1;
+            border: 3px solid var(--gold);
+            border-radius: var(--radius-md);
+            pointer-events: none;
+        }
+
+        .status-msg {
+            min-height: 20px;
+            text-align: center;
+            font-size: 13px;
+            margin: 16px 0 0;
+            color: var(--ink-soft);
+        }
+
+        .status-msg.error {
+            color: #B23B3B;
+        }
+
+        .status-msg.success {
+            color: #3B7A4A;
+        }
+
+        /* Mobile responsiveness */
+        @@media (max-width: 600px) {
+            .card {
+                padding: 28px 20px 24px;
+                border-radius: var(--radius-md);
+            }
+
+            .card-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 8px;
+            }
+
+            .logo-mark {
+                width: 52px;
+                height: 52px;
+            }
+
+            .headline {
+                font-size: 24px;
+            }
+
+            .intro {
+                font-size: 13px;
+                text-align: center;
+            }
+
+            .scan-box {
+                padding: 24px 16px;
+                min-height: 220px;
+            }
+
+            .scan-btn {
+                max-width: 100%;
+                font-size: 13px;
+                padding: 10px 16px;
+            }
+
+            #cameraVideo {
+                max-width: 100%;
+            }
+        }
+
+        @@media (max-width: 360px) {
+            .headline {
+                font-size: 20px;
+            }
+
+            .qr-icon {
+                width: 44px;
+                height: 44px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-background"></div>
+
+    <main class="card" role="main">
+        <div class="card-header">
+            <img src="~/images/logo.png" alt="QRemember" class="logo-mark" />
+            <h1 class="headline">Be our Guest!</h1>
+        </div>
+
+        <p class="intro">
+            Welcome to <strong>QRemember</strong>, your repository for all your precious
+            memories during events! Got an event QR Code? Scan or upload it below to be
+            able to share your photos!
+        </p>
+
+        <div class="scan-box" id="scanBox" tabindex="0" aria-label="Drop, paste, upload or scan an event QR code">
+            <!-- Idle state: drag/drop + paste target -->
+            <div class="scan-box-inner" id="scanIdle">
+                <svg class="qr-icon" width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect x="4" y="4" width="20" height="20" rx="2" stroke="currentColor" stroke-width="3"/>
+                    <rect x="10" y="10" width="8" height="8" fill="currentColor"/>
+                    <rect x="32" y="4" width="20" height="20" rx="2" stroke="currentColor" stroke-width="3"/>
+                    <rect x="38" y="10" width="8" height="8" fill="currentColor"/>
+                    <rect x="4" y="32" width="20" height="20" rx="2" stroke="currentColor" stroke-width="3"/>
+                    <rect x="10" y="38" width="8" height="8" fill="currentColor"/>
+                    <rect x="32" y="32" width="8" height="8" fill="currentColor"/>
+                    <rect x="44" y="32" width="8" height="8" fill="currentColor"/>
+                    <rect x="32" y="44" width="8" height="8" fill="currentColor"/>
+                    <rect x="44" y="44" width="8" height="8" fill="currentColor"/>
+                </svg>
+                <p class="drop-label">Drag and Drop / Copy and Paste</p>
+
+                <button type="button" class="scan-btn" id="uploadBtn">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1v9M8 1 4.5 4.5M8 1l3.5 3.5M2 11v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Upload QR Code
+                </button>
+
+                <button type="button" class="scan-btn" id="scanCameraBtn">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 5V3a1 1 0 0 1 1-1h2M14 5V3a1 1 0 0 0-1-1h-2M2 11v2a1 1 0 0 0 1 1h2M14 11v2a1 1 0 0 1-1 1h-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="5" y="6" width="6" height="4" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
+                    Scan QR Code
+                </button>
+
+                <input type="file" id="qrFileInput" accept="image/*" class="visually-hidden" />
+            </div>
+
+            <!-- Camera state: live video + canvas overlay, hidden until "Scan QR Code" is pressed -->
+            <div class="scan-box-camera" id="scanCamera">
+                <video id="cameraVideo" playsinline muted></video>
+                <canvas id="cameraCanvas" hidden></canvas>
+                <div class="camera-frame"></div>
+                <button type="button" class="scan-btn scan-btn--ghost" id="cancelCameraBtn">Cancel</button>
+            </div>
+        </div>
+
+        <p class="status-msg" id="statusMsg" role="status" aria-live="polite"></p>
+    </main>
+
+    <form id="antiforgeryForm">@Html.AntiForgeryToken()</form>
+
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <script>
+        (function () {
+            "use strict";
+
+            const scanBox = document.getElementById("scanBox");
+            const scanIdle = document.getElementById("scanIdle");
+            const scanCamera = document.getElementById("scanCamera");
+            const uploadBtn = document.getElementById("uploadBtn");
+            const scanCameraBtn = document.getElementById("scanCameraBtn");
+            const cancelCameraBtn = document.getElementById("cancelCameraBtn");
+            const qrFileInput = document.getElementById("qrFileInput");
+            const cameraVideo = document.getElementById("cameraVideo");
+            const cameraCanvas = document.getElementById("cameraCanvas");
+            const statusMsg = document.getElementById("statusMsg");
+
+            let cameraStream = null;
+            let cameraLoopId = null;
+            let isProcessing = false; // guards against double-submits while we're mid-decode/redirect
+
+            // ---------- status helpers ----------
+
+            function setStatus(message, type) {
+                statusMsg.textContent = message || "";
+                statusMsg.classList.remove("error", "success");
+                if (type) statusMsg.classList.add(type);
+            }
+
+            // ---------- antiforgery ----------
+
+            function getAntiforgeryToken() {
+                const el = document.querySelector('#antiforgeryForm input[name="__RequestVerificationToken"]');
+                return el ? el.value : "";
+            }
+
+            // ---------- submit decoded QR text to the server ----------
+
+            async function submitQrData(qrData) {
+                if (isProcessing) return;
+                isProcessing = true;
+                setStatus("Checking QR code…");
+
+                try {
+                    const response = await fetch("/GuestUpload?handler=Scan", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "RequestVerificationToken": getAntiforgeryToken()
+                        },
+                        body: JSON.stringify({ qrData })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error("Server error: " + response.status);
+                    }
+
+                    const result = await response.json();
+
+                    if (result.success && result.redirectUrl) {
+                        setStatus("Event found! Taking you to the gallery…", "success");
+                        stopCamera();
+                        window.location.href = result.redirectUrl;
+                    } else {
+                        setStatus(result.message || "That QR code isn't valid. Please try again.", "error");
+                        isProcessing = false;
+                    }
+                } catch (err) {
+                    console.error(err);
+                    setStatus("Something went wrong reading that QR code. Please try again.", "error");
+                    isProcessing = false;
+                }
+            }
+
+            // ---------- decode a static image (upload / drag-drop / paste) ----------
+
+            function decodeImageFile(file) {
+                if (!file || !file.type.startsWith("image/")) {
+                    setStatus("Please provide an image file.", "error");
+                    return;
+                }
+
+                setStatus("Reading QR code…");
+
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.onload = function () {
+                        const canvas = document.createElement("canvas");
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext("2d");
+                        ctx.drawImage(img, 0, 0);
+
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const code = window.jsQR(imageData.data, imageData.width, imageData.height);
+
+                        if (code && code.data) {
+                            submitQrData(code.data);
+                        } else {
+                            setStatus("No QR code found in that image. Please try again.", "error");
+                        }
+                    };
+                    img.onerror = function () {
+                        setStatus("That file couldn't be read as an image.", "error");
+                    };
+                    img.src = e.target.result;
+                };
+                reader.onerror = function () {
+                    setStatus("That file couldn't be read.", "error");
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // ---------- upload button ----------
+
+            uploadBtn.addEventListener("click", () => qrFileInput.click());
+
+            qrFileInput.addEventListener("change", (e) => {
+                const file = e.target.files && e.target.files[0];
+                if (file) decodeImageFile(file);
+                qrFileInput.value = ""; // allow re-selecting the same file later
+            });
+
+            // ---------- drag and drop ----------
+
+            ["dragenter", "dragover"].forEach((evt) => {
+                scanBox.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    scanBox.classList.add("drag-over");
+                });
+            });
+
+            ["dragleave", "drop"].forEach((evt) => {
+                scanBox.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    scanBox.classList.remove("drag-over");
+                });
+            });
+
+            scanBox.addEventListener("drop", (e) => {
+                const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+                if (file) decodeImageFile(file);
+            });
+
+            // ---------- copy and paste ----------
+
+            document.addEventListener("paste", (e) => {
+                const items = e.clipboardData && e.clipboardData.items;
+                if (!items) return;
+
+                for (const item of items) {
+                    if (item.type.startsWith("image/")) {
+                        const file = item.getAsFile();
+                        if (file) decodeImageFile(file);
+                        break;
+                    }
+                }
+            });
+
+            // ---------- live camera scan ----------
+
+            async function startCamera() {
+                setStatus("");
+                scanIdle.classList.add("is-hidden");
+                scanCamera.classList.add("is-active");
+
+                try {
+                    cameraStream = await navigator.mediaDevices.getUserMedia({
+                        video: { facingMode: "environment" }
+                    });
+                    cameraVideo.srcObject = cameraStream;
+                    await cameraVideo.play();
+                    requestAnimationFrame(scanFrame);
+                } catch (err) {
+                    console.error(err);
+                    setStatus("Couldn't access the camera. Check your browser permissions.", "error");
+                    stopCamera();
+                }
+            }
+
+            function stopCamera() {
+                if (cameraLoopId) {
+                    cancelAnimationFrame(cameraLoopId);
+                    cameraLoopId = null;
+                }
+                if (cameraStream) {
+                    cameraStream.getTracks().forEach((track) => track.stop());
+                    cameraStream = null;
+                }
+                cameraVideo.srcObject = null;
+                scanCamera.classList.remove("is-active");
+                scanIdle.classList.remove("is-hidden");
+            }
+
+            function scanFrame() {
+                if (!cameraStream || isProcessing) {
+                    if (cameraStream) cameraLoopId = requestAnimationFrame(scanFrame);
+                    return;
+                }
+
+                if (cameraVideo.readyState === cameraVideo.HAVE_ENOUGH_DATA) {
+                    const ctx = cameraCanvas.getContext("2d");
+                    cameraCanvas.width = cameraVideo.videoWidth;
+                    cameraCanvas.height = cameraVideo.videoHeight;
+                    ctx.drawImage(cameraVideo, 0, 0, cameraCanvas.width, cameraCanvas.height);
+
+                    const imageData = ctx.getImageData(0, 0, cameraCanvas.width, cameraCanvas.height);
+                    const code = window.jsQR(imageData.data, imageData.width, imageData.height);
+
+                    if (code && code.data) {
+                        submitQrData(code.data);
+                        return; // stop the scan loop; submitQrData will redirect or reset isProcessing
+                    }
+                }
+
+                cameraLoopId = requestAnimationFrame(scanFrame);
+            }
+
+            scanCameraBtn.addEventListener("click", startCamera);
+            cancelCameraBtn.addEventListener("click", stopCamera);
+
+            // Clean up camera if the guest navigates away mid-scan
+            window.addEventListener("beforeunload", stopCamera);
+        })();
+    </script>
+</body>
+</html>
