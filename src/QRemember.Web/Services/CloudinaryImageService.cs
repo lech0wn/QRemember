@@ -12,6 +12,11 @@ public class CloudinaryImageService : ICloudinaryImageService
         _cloudinary = cloudinary;
     }
 
+    public Task<string> UploadAsync(string imageData)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<(string Url, string PublicId)> UploadEventPhotoAsync(
         Stream fileStream,
         string fileName,

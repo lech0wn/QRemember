@@ -1,15 +1,16 @@
 @page "{eventCode}"
 @model QRemember.Web.Pages.SharePhotosModel
 @{
-    Layout = null; // Standalone page. Swap in your _Layout.cshtml if you want the shared chrome,
-                   // then remove the <html>/<head>/<body> wrapper below.
+    Layout = null;
 }
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>QRemember - Share Photos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>Share Photos - @Model.EventName</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -270,6 +271,58 @@
             cursor: not-allowed;
         }
 
+        /* Add loading state */
+        .add-more-btn.loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .add-more-btn .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .add-more-btn.loading .spinner {
+            display: inline-block;
+        }
+
+        .add-more-btn.loading .btn-text {
+            display: none;
+        }
+
+        @@keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .upload-progress {
+            margin-top: 12px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--ink-soft);
+        }
+
+        .upload-progress .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #E9E4D8;
+            border-radius: 2px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+
+        .upload-progress .progress-bar .progress-fill {
+            height: 100%;
+            background: var(--gold);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+
         .toast {
             margin-top: 14px;
             text-align: center;
@@ -280,7 +333,7 @@
         .toast.error { color: var(--danger); }
         .toast.success { color: #3B7A4A; }
 
-        /* Mobile refinements (screenshot reference is ~360px wide) */
+        /* Mobile refinements */
         @@media (max-width: 420px) {
             .headline {
                 font-size: 28px;
@@ -300,7 +353,7 @@
             }
         }
 
-        /* Desktop refinements - a little more breathing room */
+        /* Desktop refinements */
         @@media (min-width: 900px) {
             .page {
                 max-width: 560px;
@@ -320,12 +373,12 @@
         </div>
 
         <h1 class="headline">Share Photos</h1>
-        <p class="subhead">Upload your photos to the event album</p>
+        <p class="subhead">Upload your photos to @Model.EventName</p>
         <p class="hashtag">#@Model.EventHashtag</p>
 
         <label class="field-label" for="guestName">GUEST NAME (OPTIONAL)</label>
         <span class="field-hint">Leave blank for anonymous contribution</span>
-        <input type="text" id="guestName" class="guest-name-input" placeholder="" autocomplete="name" maxlength="80" />
+        <input type="text" id="guestName" class="guest-name-input" placeholder="Your name..." autocomplete="name" maxlength="80" />
 
         <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Choose photos to upload">
             <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -334,6 +387,7 @@
                 <path d="M33 6v10M28 11h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
             <span class="dropzone-label">CHOOSE PHOTOS</span>
+            <span style="font-size:11px;color:var(--ink-soft);">or drag and drop</span>
             <input type="file" id="fileInput" class="visually-hidden" accept="image/*" multiple />
         </div>
 
@@ -343,9 +397,21 @@
 
         <div class="photo-grid" id="photoGrid"></div>
 
-        <button type="button" class="add-more-btn" id="submitBtn" hidden>Submit</button>
+        <button type="button" class="add-more-btn" id="submitBtn" hidden>
+            <span class="spinner"></span>
+            <span class="btn-text">Submit Photos</span>
+        </button>
+
+        <div class="upload-progress" id="uploadProgress" style="display:none;">
+            <span id="progressText">Uploading...</span>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
 
         <p class="toast" id="toast" role="status" aria-live="polite"></p>
+        
+        <form id="antiforgeryForm">@Html.AntiForgeryToken()</form>
     </div>
 
     <script>
@@ -363,8 +429,10 @@
             const submitBtn = document.getElementById("submitBtn");
             const toast = document.getElementById("toast");
             const guestNameInput = document.getElementById("guestName");
+            const uploadProgress = document.getElementById("uploadProgress");
+            const progressFill = document.getElementById("progressFill");
+            const progressText = document.getElementById("progressText");
 
-            // Each entry: { tile, file, previewUrl } - held in memory only, nothing is sent anywhere
             const photos = [];
 
             function setToast(message, type) {
@@ -437,8 +505,103 @@
                 }
 
                 files.slice(0, remaining).forEach((file) => addPhoto(file));
+                setToast("", "");
             }
 
+            // Upload photos to server
+            async function uploadPhotos() {
+                if (photos.length === 0) {
+                    setToast("Please select at least one photo.", "error");
+                    return;
+                }
+
+                // Validate guest name
+                const guestName = guestNameInput.value.trim() || "Guest";
+
+                // Disable submit button
+                submitBtn.disabled = true;
+                submitBtn.classList.add("loading");
+                uploadProgress.style.display = "block";
+                progressFill.style.width = "0%";
+                progressText.textContent = "Preparing upload...";
+
+                try {
+                    // Convert photos to base64 for upload
+                    const photoData = [];
+                    for (let i = 0; i < photos.length; i++) {
+                        progressText.textContent = `Uploading photo ${i + 1} of ${photos.length}...`;
+                        progressFill.style.width = `${((i + 1) / photos.length) * 100}%`;
+
+                        const base64 = await fileToBase64(photos[i].file);
+                        photoData.push(base64);
+                    }
+
+                    // Send to server
+                    const response = await fetch(`/SharePhotos/${EVENT_CODE}?handler=Upload`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "RequestVerificationToken": getAntiforgeryToken()
+                        },
+                        body: JSON.stringify({
+                            eventCode: EVENT_CODE,
+                            guestName: guestName,
+                            photoData: photoData
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        setToast("✅ " + result.message, "success");
+                        progressFill.style.width = "100%";
+                        progressText.textContent = "Upload complete!";
+
+                        // Clear photos after successful upload
+                        setTimeout(() => {
+                            // Clear the grid
+                            photos.forEach(p => URL.revokeObjectURL(p.previewUrl));
+                            photos.length = 0;
+                            photoGrid.innerHTML = "";
+                            updateCount();
+                            submitBtn.hidden = true;
+                            uploadProgress.style.display = "none";
+
+                            // Redirect back to gallery after a moment
+                            setTimeout(() => {
+                                window.location.href = `/Guest/GuestEventGallery?code=${EVENT_CODE}`;
+                            }, 2000);
+                        }, 1000);
+                    } else {
+                        setToast("❌ " + (result.message || "Upload failed. Please try again."), "error");
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove("loading");
+                        uploadProgress.style.display = "none";
+                    }
+                } catch (error) {
+                    console.error("Upload error:", error);
+                    setToast("❌ Upload failed. Please check your connection and try again.", "error");
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove("loading");
+                    uploadProgress.style.display = "none";
+                }
+            }
+
+            function fileToBase64(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            function getAntiforgeryToken() {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                return token ? token.value : "";
+            }
+
+            // Event listeners
             dropzone.addEventListener("click", () => fileInput.click());
             dropzone.addEventListener("keydown", (e) => {
                 if (e.key === "Enter" || e.key === " ") {
@@ -452,13 +615,9 @@
                 fileInput.value = "";
             });
 
-            submitBtn.addEventListener("click", () => {
-                // TODO: this is where you'd actually send `photos` (each entry has .file)
-                // and guestNameInput.value to your backend once it's wired up.
-                setToast("Thanks! Your " + photos.length + " photo(s) were submitted.", "success");
-                submitBtn.disabled = true;
-            });
+            submitBtn.addEventListener("click", uploadPhotos);
 
+            // Drag and drop
             ["dragenter", "dragover"].forEach((evt) => {
                 dropzone.addEventListener(evt, (e) => {
                     e.preventDefault();
@@ -475,6 +634,23 @@
 
             dropzone.addEventListener("drop", (e) => {
                 if (e.dataTransfer && e.dataTransfer.files) handleFiles(e.dataTransfer.files);
+            });
+
+            // Allow paste from clipboard
+            document.addEventListener("paste", (e) => {
+                const items = e.clipboardData && e.clipboardData.items;
+                if (!items) return;
+
+                const imageItems = Array.from(items).filter(item => item.type.startsWith("image/"));
+                if (imageItems.length > 0) {
+                    const files = imageItems.map(item => item.getAsFile());
+                    const fileList = {
+                        length: files.length,
+                        item: (i) => files[i],
+                        [Symbol.iterator]: function* () { yield* files; }
+                    };
+                    handleFiles(fileList);
+                }
             });
 
             updateCount();

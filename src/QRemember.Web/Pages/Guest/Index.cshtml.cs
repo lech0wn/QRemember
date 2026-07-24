@@ -19,9 +19,12 @@ public class IndexModel : PageModel
     public DateTime EventDate { get; private set; }
     public bool EventFound { get; private set; }
     public bool EventExpired { get; private set; }
+    public string EventCode { get; private set; } = string.Empty;
 
     public async Task<IActionResult> OnGetAsync(string code)
     {
+        EventCode = code;
+
         var organizerEvent = await _db.Events
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.EventCode == code && e.IsActive);
@@ -45,5 +48,11 @@ public class IndexModel : PageModel
         EventDate = organizerEvent.EventDate;
 
         return Page();
+    }
+
+    // Add a POST handler to redirect to gallery
+    public IActionResult OnPostViewGallery(string code)
+    {
+        return RedirectToPage("/Guest/GuestEventGallery", new { code });
     }
 }

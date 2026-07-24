@@ -5,21 +5,15 @@ namespace QRemember.Web.Pages
 {
     public class GuestUploadModel : PageModel
     {
-        // TODO: inject your DbContext / event lookup service here, e.g.:
-        // private readonly ApplicationDbContext _db;
-        // public GuestUploadModel(ApplicationDbContext db) => _db = db;
+        // TODO: inject your DbContext / event lookup service here
+        // private readonly AppDbContext _db;
+        // public GuestUploadModel(AppDbContext db) => _db = db;
 
         public void OnGet()
         {
         }
 
-        /// <summary>
-        /// Called via fetch() from guest-upload.js once a QR code has been decoded
-        /// client-side (either from an uploaded/pasted image or a live camera scan).
-        /// Validates the decoded value against a real event and returns the gallery
-        /// URL to redirect the guest to.
-        /// </summary>
-        public IActionResult OnPostScan([FromBody] ScanRequest request)
+        public async Task<IActionResult> OnPostScan([FromBody] ScanRequest request)
         {
             if (request is null || string.IsNullOrWhiteSpace(request.QrData))
             {
@@ -30,12 +24,12 @@ namespace QRemember.Web.Pages
                 });
             }
 
-            // TODO: replace this stub with a real lookup, e.g.:
-            // var eventCode = ParseEventCode(request.QrData);
-            // var eventEntity = _db.Events.FirstOrDefault(e => e.Code == eventCode && e.IsActive);
-            // if (eventEntity is null) { return not-found response }
-
             var eventCode = request.QrData.Trim();
+
+            // TODO: Replace with real database lookup
+            // var eventEntity = await _db.Events
+            //     .FirstOrDefaultAsync(e => e.EventCode == eventCode && e.IsActive);
+            // if (eventEntity is null) { ... }
 
             if (string.IsNullOrEmpty(eventCode))
             {
@@ -46,10 +40,12 @@ namespace QRemember.Web.Pages
                 });
             }
 
+            // Fix: Redirect to the correct gallery page
             return new JsonResult(new ScanResponse
             {
                 Success = true,
-                RedirectUrl = Url.Page("/Shared/GuestViews/GuestGallery", new { eventCode })
+                RedirectUrl = Url.Page("/Guest/GuestEventGallery", new { code = eventCode })
+                // Or use: RedirectUrl = $"/Guest/GuestEventGallery?code={eventCode}"
             });
         }
 
