@@ -5,7 +5,6 @@
     ViewData["Title"] = Model.EventName;
     Layout = null;
 
-    // Fix the null-coalescing operator issue
     var photos = Model.Photos?.ToList() ?? new List<GuestEventGalleryModel.GalleryPhoto>();
     var rowIndex = 0;
     var photoIndex = 0;
@@ -56,7 +55,6 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Hero Section */
         .hero {
             position: relative;
             min-height: 200px;
@@ -72,7 +70,6 @@
             overflow: hidden;
         }
 
-        /* Gradient overlay for hero */
         .hero::before {
             content: "";
             position: absolute;
@@ -80,7 +77,6 @@
             background: var(--hero-overlay);
         }
 
-        /* Placeholder gradient when no hero image */
         .hero.placeholder::after {
             content: "";
             position: absolute;
@@ -89,7 +85,6 @@
             z-index: 0;
         }
 
-        /* Decorative pattern for placeholder */
         .hero.placeholder .pattern {
             position: absolute;
             inset: 0;
@@ -142,7 +137,6 @@
             max-width: 80%;
         }
 
-        /* Event Code Badge */
         .event-badge {
             display: inline-block;
             margin-top: 8px;
@@ -157,7 +151,6 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* Share Button */
         .share-link {
             display: flex;
             flex-direction: row;
@@ -200,14 +193,12 @@
             letter-spacing: 0.5px;
         }
 
-        /* Gallery - Reduced padding for less border space */
         .gallery {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px 8px 80px;
         }
 
-        /* Gallery header with stats */
         .gallery-header {
             display: flex;
             justify-content: space-between;
@@ -236,7 +227,6 @@
             margin-bottom: 16px;
         }
 
-        /* Mobile-first: 1 column by default, but with less padding */
         .gallery-row.cols-2,
         .gallery-row.cols-3 {
             grid-template-columns: 1fr;
@@ -280,7 +270,6 @@
             color: var(--muted);
         }
 
-        /* Empty State - Better styling */
         .empty-state {
             text-align: center;
             padding: 60px 20px 40px;
@@ -322,7 +311,6 @@
             background: #A5834C;
         }
 
-        /* Tablet and Desktop - Less padding on sides */
         @@media (min-width: 600px) {
             .hero {
                 flex-direction: row;
@@ -383,19 +371,16 @@
             }
         }
 
-        /* Touch-friendly tap targets */
         .share-btn,
         .photo-card,
         button {
             touch-action: manipulation;
         }
 
-        /* Prevent zoom on input focus for iOS */
         input, select, textarea, button {
             font-size: 16px !important;
         }
 
-        /* Image loading animation */
         .photo-card img {
             background: linear-gradient(90deg, #f0ede8 25%, #e5e1da 50%, #f0ede8 75%);
             background-size: 200% 100%;
@@ -437,7 +422,8 @@
             }
         </div>
 
-        <a asp-page="/SharePhotos" asp-route-eventCode="@Model.EventCode" class="share-link" aria-label="Share a photo">
+        <!-- FIXED: Correct URL for GuestUpload in /Guest folder -->
+        <a href="/Guest/GuestUpload?code=@Model.EventCode" class="share-link" aria-label="Share a photo">
             <span class="share-btn" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
@@ -462,7 +448,8 @@
                 <div class="empty-icon">📷</div>
                 <h3>No photos yet</h3>
                 <p>Be the first to share a memory from this event!</p>
-                <a asp-page="/SharePhotos" asp-route-eventCode="@Model.EventCode" class="upload-prompt">
+                <!-- FIXED: Correct URL for GuestUpload in /Guest folder -->
+                <a href="/Guest/GuestUpload?code=@Model.EventCode" class="upload-prompt">
                     Share a Photo
                 </a>
             </div>
@@ -502,7 +489,6 @@
     </main>
 
     <script>
-        // Lazy load images with Intersection Observer for better performance
         if ('IntersectionObserver' in window) {
             const images = document.querySelectorAll('img[loading="lazy"]');
             const imageObserver = new IntersectionObserver((entries, observer) => {
@@ -520,7 +506,6 @@
             images.forEach(img => imageObserver.observe(img));
         }
 
-        // Handle safe areas for iPhone Notch
         if (window.navigator.userAgent.includes('iPhone')) {
             document.documentElement.style.setProperty('--safe-area-inset-top', 'env(safe-area-inset-top)');
             document.documentElement.style.setProperty('--safe-area-inset-bottom', 'env(safe-area-inset-bottom)');
