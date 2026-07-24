@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting; // Added for IWebHostEnvironment
 using QRemember.Web.Data;
 using QRemember.Web.Models;
 
@@ -17,12 +18,18 @@ public class CreateEventModel : PageModel
     private readonly AppDbContext _db;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IServer _server;
+    private readonly IWebHostEnvironment _env; // Added environment check
 
-    public CreateEventModel(AppDbContext db, UserManager<ApplicationUser> userManager, IServer server)
+    public CreateEventModel(
+        AppDbContext db, 
+        UserManager<ApplicationUser> userManager, 
+        IServer server,
+        IWebHostEnvironment env)
     {
         _db = db;
         _userManager = userManager;
         _server = server;
+        _env = env;
     }
 
     [BindProperty]
@@ -38,9 +45,7 @@ public class CreateEventModel : PageModel
     [Required(ErrorMessage = "Event date is required")]
     public DateTime? EventDate { get; set; }
 
-    public void OnGet()
-    {
-    }
+    public void OnGet() { }
 
     public async Task<IActionResult> OnPostAsync()
     {
@@ -57,8 +62,13 @@ public class CreateEventModel : PageModel
 
         var eventCode = await GenerateUniqueEventCodeAsync(Name);
         var guestOrigin = ResolveGuestOrigin();
-        var guestLink = Url.Page("/Guest/GuestEventGallery", pageHandler: null, values: new { code = eventCode }, protocol: guestOrigin.Scheme, host: guestOrigin.Authority)
-            ?? $"{guestOrigin.Scheme}://{guestOrigin.Authority}/Guest/GuestEventGallery/{eventCode}";
+
+        // In the ResolveGuestOrigin method or where QR code is generated:
+        var guestLink = Url.Page("/Guest/GuestEventGallery", pageHandler: null,
+            values: new { code = eventCode },
+            protocol: guestOrigin.Scheme,
+            host: guestOrigin.Authority)
+            ?? $"{guestOrigin.Scheme}://{guestOrigin.Authority}/Guest/GuestEventGallery?code={eventCode}";
 
         var newEvent = new Event
         {
@@ -68,6 +78,7 @@ public class CreateEventModel : PageModel
             EventCode = eventCode,
             QrCodeUrl = guestLink,
             OrganizerId = organizerId,
+            IsActive = true
         };
 
         _db.Events.Add(newEvent);
@@ -96,35 +107,35 @@ public class CreateEventModel : PageModel
         throw new InvalidOperationException("Could not generate a unique event code.");
     }
 
-    // Guests scan the QR code with a phone on the same Wi-Fi as the host machine, not the
-    // machine itself, so "localhost" in the generated link needs to become a LAN-reachable
-    // address they can actually open.
     private Uri ResolveGuestOrigin()
     {
         var fallback = new Uri($"{Request.Scheme}://{Request.Host}");
 
-        if (!IsLoopbackHost(Request.Host.Host))
+        // Only attempt LAN IP resolution locally during development.
+        // In staging/production, trust the incoming Request host (or Forwarded Headers).
+        if (!_env.IsDevelopment() || !IsLoopbackHost(Request.Host.Host))
         {
             return fallback;
         }
 
         var lanIp = GetLocalNetworkIp();
-        var httpPort = GetBoundHttpPort();
-        if (lanIp is null || httpPort is null)
+        var boundPort = GetBoundPort(Request.Scheme); // Match the incoming request's scheme
+
+        if (lanIp is null || boundPort is null)
         {
             return fallback;
         }
 
-        return new Uri($"http://{lanIp}:{httpPort}");
+        return new Uri($"{Request.Scheme}://{lanIp}:{boundPort}");
     }
 
     private static bool IsLoopbackHost(string hostName)
     {
-        return hostName.Equals("localhost", StringComparison.OrdinalIgnoreCase)
+        return hostName.Equals("localhost", StringComparison.OrdinalIgnoreCase) 
             || (IPAddress.TryParse(hostName, out var ip) && IPAddress.IsLoopback(ip));
     }
 
-    private int? GetBoundHttpPort()
+    private int? GetBoundPort(string scheme)
     {
         var addresses = _server.Features.Get<IServerAddressesFeature>()?.Addresses;
         if (addresses is null)
@@ -134,31 +145,39 @@ public class CreateEventModel : PageModel
 
         foreach (var address in addresses)
         {
-            if (Uri.TryCreate(address, UriKind.Absolute, out var uri) && uri.Scheme == "http")
+            if (Uri.TryCreate(address, UriKind.Absolute, out var uri) && uri.Scheme.Equals(scheme, StringComparison.OrdinalIgnoreCase))
             {
                 return uri.Port;
             }
         }
-
-        return null;
+        
+        // Fallback to whatever port the browser used to make the request if Kestrel configuration couldn't be parsed
+        return Request.Host.Port;
     }
 
-    // Machines with WSL, Hyper-V, or VMware installed have several virtual adapters
-    // (vEthernet, VMnet, ...) that also report as "up" with a non-loopback IPv4 address,
-    // so picking the first such adapter is unreliable. Asking the OS which local address
-    // it would use to route to the public internet reliably resolves to the real
-    // Wi-Fi/Ethernet adapter instead, since virtual adapters have no default route.
     private static string? GetLocalNetworkIp()
     {
         try
         {
             using var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            // Attempt to route to public internet first
             socket.Connect("8.8.8.8", 65530);
             return (socket.LocalEndPoint as IPEndPoint)?.Address.ToString();
         }
         catch (SocketException)
         {
-            return null;
+            try
+            {
+                // Offline Fallback: If no internet route exists, fall back to matching the primary gateway route 
+                // by using a common private network subnet broadcast endpoint.
+                using var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                socket.Connect("192.168.1.254", 65530); 
+                return (socket.LocalEndPoint as IPEndPoint)?.Address.ToString();
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

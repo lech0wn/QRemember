@@ -46,7 +46,8 @@ public class IndexModel : PageModel
             return new JsonResult(new { success = false, message = "We couldn't find an event for that QR code." });
         }
 
-        var redirectUrl = Url.Page("/Shared/Gallery/EventGallery", new { code = eventEntity.EventCode });
+        // Must match the page CreateEventModel actually generates links/QR codes for.
+        var redirectUrl = Url.Page("/Guest/GuestEventGallery", new { code = eventEntity.EventCode });
         return new JsonResult(new { success = true, redirectUrl });
     }
 
