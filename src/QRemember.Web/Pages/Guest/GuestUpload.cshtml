@@ -1,171 +1,190 @@
-@page
+@page "{code?}"
 @model QRemember.Web.Pages.GuestUploadModel
 @{
-    Layout = null; // Standalone page. Swap in your _Layout.cshtml if you want the shared chrome,
-                   // then remove the <html>/<head>/<body> wrapper below.
+    Layout = null;
+    var isEventFound = Model.EventFound && !string.IsNullOrWhiteSpace(Model.EventCode);
 }
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>QRemember - Guest Upload</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>@(isEventFound ? $"Share Photos — {Model.EventName}" : "Find Your Event")</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
     <style>
         :root {
-            --gold: #B8975A;
-            --ink: #2B2B2B;
-            --ink-soft: #565656;
-            --card-bg: #FDFCFA;
-            --border-soft: #E4DFD6;
-            --black: #17171A;
+            --brand-primary: #C5A059;
+            --brand-hover: #B28E46;
+            --brand-light: #FBF8F2;
+            --surface-bg: #FAF9F6;
+            --card-bg: #FFFFFF;
+            --text-dark: #1A1A1A;
+            --text-muted: #71717A;
+            --border-color: #E4E4E7;
+            --danger: #E11D48;
+            --success: #16A34A;
+            --radius-xl: 20px;
             --radius-lg: 12px;
             --radius-md: 8px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
         }
 
         * {
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             margin: 0;
             min-height: 100vh;
+            background-color: var(--surface-bg);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--text-dark);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 32px 16px 64px;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 460px;
+        }
+
+        /* Header / Brand */
+        .brand-header {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Montserrat', sans-serif;
-            color: var(--ink);
-            padding: 24px;
-            position: relative;
+            gap: 12px;
+            margin-bottom: 32px;
         }
 
-        /* Full-bleed background image, forced black & white per style guide */
-        .page-background {
-            position: fixed;
-            inset: 0;
-            background-image: url('/images/auth-pic.jpg');
-            background-size: cover;
-            background-position: center;
-            filter: grayscale(100%);
-            z-index: -1;
+        .brand-header img {
+            width: 36px;
+            height: 36px;
+            object-fit: contain;
         }
 
-        .card {
-            position: relative;
-            width: 100%;
-            max-width: 500px;
-            background: var(--card-bg);
-            border-radius: var(--radius-lg);
-            padding: 40px 40px 32px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
-        }
-
-        .card-header {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-bottom: 20px;
-        }
-
-        .logo-mark {
-            width: 64px;
-            height: 64px;
-            flex-shrink: 0;
-        }
-
-        .headline {
+        .brand-title {
             font-family: 'Playfair Display', serif;
             font-weight: 700;
-            font-size: 30px;
-            margin: 0;
-            color: var(--ink);
+            font-size: 22px;
+            letter-spacing: 1.5px;
+            color: var(--text-dark);
+            text-transform: uppercase;
         }
 
-        .intro {
+        /* Titles Block */
+        .page-title {
+            text-align: center;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 32px;
+            color: var(--brand-primary);
+            margin: 0 0 6px;
+            line-height: 1.2;
+        }
+
+        .page-subtitle {
+            text-align: center;
             font-size: 14px;
-            line-height: 1.6;
-            color: var(--ink-soft);
+            color: var(--text-muted);
             margin: 0 0 24px;
         }
 
-        .intro strong {
-            color: var(--ink);
+        .event-tag {
+            text-align: center;
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            font-size: 18px;
+            color: var(--brand-primary);
+            margin: -12px 0 28px;
         }
 
-        .scan-box {
-            background: var(--black);
-            border-radius: var(--radius-lg);
-            padding: 32px 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 260px;
-            transition: box-shadow 0.15s ease;
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 24px;
         }
 
-        .scan-box.drag-over {
-            box-shadow: 0 0 0 3px var(--gold);
-        }
-
-        .scan-box-inner {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
-        }
-
-        .qr-icon {
-            color: #FFFFFF;
+        .field-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            color: var(--text-dark);
+            text-transform: uppercase;
             margin-bottom: 4px;
         }
 
-        .drop-label {
-            color: #FFFFFF;
-            font-size: 13px;
-            margin: 0 0 14px;
-            text-align: center;
+        .field-hint {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
         }
 
-        .scan-btn {
+        .guest-input {
             width: 100%;
-            max-width: 260px;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            font-family: inherit;
+            font-size: 14px;
+            color: var(--text-dark);
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .guest-input:focus {
+            outline: none;
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.15);
+        }
+
+        /* Dropzone Component */
+        .dropzone-card {
+            width: 100%;
+            background: var(--card-bg);
+            border: 2px dashed var(--brand-primary);
+            border-radius: var(--radius-xl);
+            padding: 40px 20px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            background: #FFFFFF;
-            color: var(--ink);
-            border: none;
-            border-radius: 999px;
-            padding: 11px 20px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 14px;
-            font-weight: 600;
+            gap: 12px;
             cursor: pointer;
-            transition: background 0.15s ease, transform 0.1s ease;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-md);
         }
 
-        .scan-btn:hover {
-            background: var(--gold);
-            color: #FFFFFF;
+        .dropzone-card:hover,
+        .dropzone-card.drag-over {
+            background: var(--brand-light);
+            transform: translateY(-2px);
         }
 
-        .scan-btn:active {
-            transform: scale(0.98);
+        .dropzone-icon {
+            width: 48px;
+            height: 48px;
+            color: var(--brand-primary);
         }
 
-        .scan-btn--ghost {
-            background: transparent;
-            border: 1px solid #FFFFFF;
-            color: #FFFFFF;
-            margin-top: 12px;
+        .dropzone-title {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--text-dark);
         }
 
-        .scan-btn--ghost:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #FFFFFF;
+        .dropzone-sub {
+            font-size: 12px;
+            color: var(--text-muted);
         }
 
         .visually-hidden {
@@ -176,403 +195,725 @@
             margin: -1px;
             overflow: hidden;
             clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
             border: 0;
         }
 
-        /* Camera scanning state */
-        .scan-box-camera {
-            display: none;
+        /* Status & Gallery Bar */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .status-bar.limit-reached {
+            color: var(--danger);
+        }
+
+        .gallery-link {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--brand-primary);
+            text-decoration: none;
+            transition: color 0.15s ease;
+        }
+
+        .gallery-link:hover {
+            color: var(--brand-hover);
+        }
+
+        /* Photo Preview Grid */
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .photo-tile {
             position: relative;
+            aspect-ratio: 1;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            background: #E4E4E7;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .photo-tile img {
             width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .delete-tile-btn {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(0, 0, 0, 0.65);
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            transition: background 0.15s ease;
+        }
+
+        .delete-tile-btn:hover {
+            background: var(--danger);
+        }
+
+        /* Submit / Upload CTA */
+        .btn-primary {
+            width: 100%;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: var(--brand-primary);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 999px;
+            padding: 14px 24px;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(197, 160, 89, 0.35);
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background: var(--brand-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Spinner & Progress */
+        .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #FFFFFF;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .btn-primary.loading .spinner { display: inline-block; }
+        .btn-primary.loading .btn-text { display: none; }
+
+        @@keyframes spin { to { transform: rotate(360deg); } }
+
+        .progress-container {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 6px;
+            background: #E4E4E7;
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--brand-primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .toast-message {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            min-height: 18px;
+        }
+
+        .toast-message.error { color: var(--danger); }
+        .toast-message.success { color: var(--success); }
+
+        /* QR Scanner Dark Shell */
+        .scan-card {
+            background: #18181B;
+            border-radius: var(--radius-xl);
+            padding: 32px 24px;
+            display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 12px;
+            gap: 18px;
+            color: #FFFFFF;
+            box-shadow: var(--shadow-md);
         }
 
-        .scan-box-camera.is-active {
+        .scan-card.drag-over {
+            box-shadow: 0 0 0 3px var(--brand-primary);
+        }
+
+        .scan-card-icon {
+            color: var(--brand-primary);
+        }
+
+        .scan-card-title {
+            color: #E4E4E7;
+            font-size: 14px;
+            margin: 0;
+            text-align: center;
+        }
+
+        .scan-action-btn {
+            width: 100%;
             display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: #FFFFFF;
+            color: #18181B;
+            border: none;
+            border-radius: 999px;
+            padding: 12px 20px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
-        .scan-box-inner.is-hidden {
+        .scan-action-btn:hover {
+            background: var(--brand-primary);
+            color: #FFFFFF;
+        }
+
+        .scan-action-btn--ghost {
+            background: transparent;
+            border: 1px solid #3F3F46;
+            color: #FFFFFF;
+        }
+
+        .scan-action-btn--ghost:hover {
+            background: #27272A;
+        }
+
+        .divider {
+            color: #52525B;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .code-input {
+            width: 100%;
+            background: #27272A;
+            border: 1px solid #3F3F46;
+            border-radius: var(--radius-lg);
+            padding: 12px 16px;
+            color: #FFFFFF;
+            font-family: inherit;
+            font-size: 15px;
+            text-align: center;
+            letter-spacing: 2px;
+            transition: border-color 0.2s ease;
+        }
+
+        .code-input::placeholder {
+            color: #71717A;
+            letter-spacing: normal;
+        }
+
+        .code-input:focus {
+            outline: none;
+            border-color: var(--brand-primary);
+        }
+
+        .camera-viewport {
+            position: relative;
+            width: 100%;
             display: none;
         }
 
-        #cameraVideo {
+        .camera-viewport.is-active {
+            display: block;
+        }
+
+        .camera-viewport video {
             width: 100%;
-            max-width: 320px;
-            border-radius: var(--radius-md);
-            background: #000;
+            border-radius: var(--radius-lg);
+            background: #000000;
         }
 
         .camera-frame {
             position: absolute;
-            top: 0;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
-            width: min(220px, 60%);
+            transform: translate(-50%, -50%);
+            width: min(200px, 60%);
             aspect-ratio: 1;
-            border: 3px solid var(--gold);
+            border: 2px solid var(--brand-primary);
             border-radius: var(--radius-md);
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4);
             pointer-events: none;
         }
 
-        .status-msg {
-            min-height: 20px;
-            text-align: center;
-            font-size: 13px;
-            margin: 16px 0 0;
-            color: var(--ink-soft);
-        }
-
-        .status-msg.error {
-            color: #B23B3B;
-        }
-
-        .status-msg.success {
-            color: #3B7A4A;
-        }
-
-        /* Mobile responsiveness */
-        @@media (max-width: 600px) {
-            .card {
-                padding: 28px 20px 24px;
-                border-radius: var(--radius-md);
-            }
-
-            .card-header {
-                flex-direction: column;
-                text-align: center;
-                gap: 8px;
-            }
-
-            .logo-mark {
-                width: 52px;
-                height: 52px;
-            }
-
-            .headline {
-                font-size: 24px;
-            }
-
-            .intro {
-                font-size: 13px;
-                text-align: center;
-            }
-
-            .scan-box {
-                padding: 24px 16px;
-                min-height: 220px;
-            }
-
-            .scan-btn {
-                max-width: 100%;
-                font-size: 13px;
-                padding: 10px 16px;
-            }
-
-            #cameraVideo {
-                max-width: 100%;
-            }
-        }
-
-        @@media (max-width: 360px) {
-            .headline {
-                font-size: 20px;
-            }
-
-            .qr-icon {
-                width: 44px;
-                height: 44px;
-            }
+        @@media (max-width: 420px) {
+            .page-title { font-size: 26px; }
+            .dropzone-card { padding: 32px 16px; }
+            .photo-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
         }
     </style>
 </head>
 <body>
-    <div class="page-background"></div>
+    <div class="page-container">
+        <!-- Brand Header -->
+        <header class="brand-header">
+            <img src="~/images/logo.png" alt="QRemember Logo" />
+            <span class="brand-title">QRemember</span>
+        </header>
 
-    <main class="card" role="main">
-        <div class="card-header">
-            <img src="~/images/logo.png" alt="QRemember" class="logo-mark" />
-            <h1 class="headline">Be our Guest!</h1>
-        </div>
+        @if (isEventFound)
+        {
+            <!-- PHOTO UPLOAD MODE -->
+            <main>
+                <h1 class="page-title">Share Photos</h1>
+                <p class="page-subtitle">Upload your photos to <strong>@Model.EventName</strong></p>
+                <div class="event-tag">#@Model.EventHashtag</div>
 
-        <p class="intro">
-            Welcome to <strong>QRemember</strong>, your repository for all your precious
-            memories during events! Got an event QR Code? Scan or upload it below to be
-            able to share your photos!
-        </p>
+                <div class="form-group">
+                    <label class="field-label" for="guestName">Guest Name (Optional)</label>
+                    <span class="field-hint">Leave blank for anonymous contribution</span>
+                    <input type="text" id="guestName" class="guest-input" placeholder="Your name..." autocomplete="name" maxlength="80" />
+                </div>
 
-        <div class="scan-box" id="scanBox" tabindex="0" aria-label="Drop, paste, upload or scan an event QR code">
-            <!-- Idle state: drag/drop + paste target -->
-            <div class="scan-box-inner" id="scanIdle">
-                <svg class="qr-icon" width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <rect x="4" y="4" width="20" height="20" rx="2" stroke="currentColor" stroke-width="3"/>
-                    <rect x="10" y="10" width="8" height="8" fill="currentColor"/>
-                    <rect x="32" y="4" width="20" height="20" rx="2" stroke="currentColor" stroke-width="3"/>
-                    <rect x="38" y="10" width="8" height="8" fill="currentColor"/>
-                    <rect x="4" y="32" width="20" height="20" rx="2" stroke="currentColor" stroke-width="3"/>
-                    <rect x="10" y="38" width="8" height="8" fill="currentColor"/>
-                    <rect x="32" y="32" width="8" height="8" fill="currentColor"/>
-                    <rect x="44" y="32" width="8" height="8" fill="currentColor"/>
-                    <rect x="32" y="44" width="8" height="8" fill="currentColor"/>
-                    <rect x="44" y="44" width="8" height="8" fill="currentColor"/>
-                </svg>
-                <p class="drop-label">Drag and Drop / Copy and Paste</p>
+                <div class="dropzone-card" id="dropzone" tabindex="0" role="button" aria-label="Choose photos to upload">
+                    <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                        <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                    <span class="dropzone-title">CHOOSE PHOTOS</span>
+                    <span class="dropzone-sub">or drag & drop images here</span>
+                    <input type="file" id="fileInput" class="visually-hidden" accept="image/*" multiple />
+                </div>
 
-                <button type="button" class="scan-btn" id="uploadBtn">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 1v9M8 1 4.5 4.5M8 1l3.5 3.5M2 11v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    Upload QR Code
+                <div class="status-bar" id="statusBar">
+                    <span id="selectionCount">0 of @Model.MaxPhotos photos</span>
+                    <a href="/Guest/GuestEventGallery?code=@Model.EventCode" class="gallery-link">View Gallery →</a>
+                </div>
+
+                <div class="photo-grid" id="photoGrid"></div>
+
+                <button type="button" class="btn-primary" id="submitBtn" hidden>
+                    <span class="spinner"></span>
+                    <span class="btn-text">Submit Photos</span>
                 </button>
 
-                <button type="button" class="scan-btn" id="scanCameraBtn">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 5V3a1 1 0 0 1 1-1h2M14 5V3a1 1 0 0 0-1-1h-2M2 11v2a1 1 0 0 0 1 1h2M14 11v2a1 1 0 0 1-1 1h-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="5" y="6" width="6" height="4" rx="1" stroke="currentColor" stroke-width="1.5"/></svg>
-                    Scan QR Code
-                </button>
+                <div class="progress-container" id="uploadProgress" style="display:none;">
+                    <span id="progressText">Uploading...</span>
+                    <div class="progress-bar-bg">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
 
-                <input type="file" id="qrFileInput" accept="image/*" class="visually-hidden" />
-            </div>
+                <p class="toast-message" id="toast" role="status" aria-live="polite"></p>
+            </main>
+        }
+        else
+        {
+            <!-- QR SCANNER MODE -->
+            <main>
+                <h1 class="page-title">Find Your Event</h1>
+                <p class="page-subtitle">Scan an event QR code or enter your code below</p>
 
-            <!-- Camera state: live video + canvas overlay, hidden until "Scan QR Code" is pressed -->
-            <div class="scan-box-camera" id="scanCamera">
-                <video id="cameraVideo" playsinline muted></video>
-                <canvas id="cameraCanvas" hidden></canvas>
-                <div class="camera-frame"></div>
-                <button type="button" class="scan-btn scan-btn--ghost" id="cancelCameraBtn">Cancel</button>
-            </div>
-        </div>
+                @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+                {
+                    <p class="toast-message error">@Model.ErrorMessage</p>
+                }
 
-        <p class="status-msg" id="statusMsg" role="status" aria-live="polite"></p>
-    </main>
+                <div class="scan-card" id="scanBox" tabindex="0">
+                    <svg class="scan-card-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path>
+                        <rect x="7" y="7" width="10" height="10" rx="1"></rect>
+                    </svg>
+                    <p class="scan-card-title">Scan the event QR code</p>
 
-    <form id="antiforgeryForm">@Html.AntiForgeryToken()</form>
+                    <div class="camera-viewport" id="cameraContainer">
+                        <video id="cameraVideo" playsinline muted></video>
+                        <canvas id="cameraCanvas" hidden></canvas>
+                        <div class="camera-frame"></div>
+                        <button type="button" class="scan-action-btn scan-action-btn--ghost" id="cancelCameraBtn" style="margin-top:12px;">Cancel</button>
+                    </div>
+
+                    <button type="button" class="scan-action-btn" id="scanCameraBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                            <circle cx="12" cy="13" r="4"></circle>
+                        </svg>
+                        Scan QR Code
+                    </button>
+
+                    <span class="divider">— OR —</span>
+
+                    <input type="text" id="eventCodeInput" class="code-input" placeholder="Enter event code" maxlength="50" />
+
+                    <button type="button" class="scan-action-btn" id="manualEntryBtn">Find Event</button>
+
+                    <input type="file" id="qrFileInput" accept="image/*" class="visually-hidden" />
+                </div>
+
+                <p class="toast-message" id="statusMsg" role="status" aria-live="polite"></p>
+            </main>
+        }
+
+        <form id="antiforgeryForm">@Html.AntiForgeryToken()</form>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
         (function () {
             "use strict";
 
-            const scanBox = document.getElementById("scanBox");
-            const scanIdle = document.getElementById("scanIdle");
-            const scanCamera = document.getElementById("scanCamera");
-            const uploadBtn = document.getElementById("uploadBtn");
-            const scanCameraBtn = document.getElementById("scanCameraBtn");
-            const cancelCameraBtn = document.getElementById("cancelCameraBtn");
-            const qrFileInput = document.getElementById("qrFileInput");
-            const cameraVideo = document.getElementById("cameraVideo");
-            const cameraCanvas = document.getElementById("cameraCanvas");
-            const statusMsg = document.getElementById("statusMsg");
-
-            let cameraStream = null;
-            let cameraLoopId = null;
-            let isProcessing = false; // guards against double-submits while we're mid-decode/redirect
-
-            // ---------- status helpers ----------
-
-            function setStatus(message, type) {
-                statusMsg.textContent = message || "";
-                statusMsg.classList.remove("error", "success");
-                if (type) statusMsg.classList.add(type);
-            }
-
-            // ---------- antiforgery ----------
+            const isEventFound = @Json.Serialize(isEventFound);
 
             function getAntiforgeryToken() {
                 const el = document.querySelector('#antiforgeryForm input[name="__RequestVerificationToken"]');
                 return el ? el.value : "";
             }
 
-            // ---------- submit decoded QR text to the server ----------
+            if (isEventFound) {
+                const MAX_PHOTOS = @Model.MaxPhotos;
+                const EVENT_CODE = @Html.Raw(Json.Serialize(Model.EventCode));
 
-            async function submitQrData(qrData) {
-                if (isProcessing) return;
-                isProcessing = true;
-                setStatus("Checking QR code…");
+                const dropzone = document.getElementById("dropzone");
+                const fileInput = document.getElementById("fileInput");
+                const photoGrid = document.getElementById("photoGrid");
+                const selectionCount = document.getElementById("selectionCount");
+                const statusBar = document.getElementById("statusBar");
+                const submitBtn = document.getElementById("submitBtn");
+                const toast = document.getElementById("toast");
+                const guestNameInput = document.getElementById("guestName");
+                const uploadProgress = document.getElementById("uploadProgress");
+                const progressFill = document.getElementById("progressFill");
+                const progressText = document.getElementById("progressText");
 
-                try {
-                    const response = await fetch("/GuestUpload?handler=Scan", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "RequestVerificationToken": getAntiforgeryToken()
-                        },
-                        body: JSON.stringify({ qrData })
-                    });
+                const photos = [];
 
-                    if (!response.ok) {
-                        throw new Error("Server error: " + response.status);
-                    }
-
-                    const result = await response.json();
-
-                    if (result.success && result.redirectUrl) {
-                        setStatus("Event found! Taking you to the gallery…", "success");
-                        stopCamera();
-                        window.location.href = result.redirectUrl;
-                    } else {
-                        setStatus(result.message || "That QR code isn't valid. Please try again.", "error");
-                        isProcessing = false;
-                    }
-                } catch (err) {
-                    console.error(err);
-                    setStatus("Something went wrong reading that QR code. Please try again.", "error");
-                    isProcessing = false;
+                function setToast(message, type) {
+                    toast.textContent = message || "";
+                    toast.className = "toast-message" + (type ? " " + type : "");
                 }
+
+                function updateCount() {
+                    selectionCount.textContent = photos.length + " of " + MAX_PHOTOS + " photos";
+                    statusBar.classList.toggle("limit-reached", photos.length >= MAX_PHOTOS);
+                    submitBtn.hidden = photos.length === 0;
+                }
+
+                function createTile(previewUrl) {
+                    const tile = document.createElement("div");
+                    tile.className = "photo-tile";
+
+                    const img = document.createElement("img");
+                    img.src = previewUrl;
+                    img.alt = "Selected photo preview";
+                    tile.appendChild(img);
+
+                    const deleteBtn = document.createElement("button");
+                    deleteBtn.type = "button";
+                    deleteBtn.className = "delete-tile-btn";
+                    deleteBtn.setAttribute("aria-label", "Remove photo");
+                    deleteBtn.innerHTML = "&times;";
+                    tile.appendChild(deleteBtn);
+
+                    photoGrid.appendChild(tile);
+                    return { tile, deleteBtn };
+                }
+
+                function addPhoto(file) {
+                    if (photos.length >= MAX_PHOTOS) return;
+
+                    const previewUrl = URL.createObjectURL(file);
+                    const { tile, deleteBtn } = createTile(previewUrl);
+
+                    const entry = { tile, file, previewUrl };
+                    photos.push(entry);
+                    updateCount();
+
+                    deleteBtn.addEventListener("click", () => removePhoto(entry));
+                }
+
+                function removePhoto(entry) {
+                    const index = photos.indexOf(entry);
+                    if (index === -1) return;
+
+                    URL.revokeObjectURL(entry.previewUrl);
+                    entry.tile.remove();
+                    photos.splice(index, 1);
+                    updateCount();
+                }
+
+                function handleFiles(fileList) {
+                    const files = Array.from(fileList).filter((f) => f.type.startsWith("image/"));
+                    if (files.length === 0) return;
+
+                    const remaining = MAX_PHOTOS - photos.length;
+                    if (remaining <= 0) {
+                        setToast("You've reached the " + MAX_PHOTOS + "-photo limit.", "error");
+                        return;
+                    }
+
+                    if (files.length > remaining) {
+                        setToast("Only " + remaining + " more photo(s) can be added.", "error");
+                    }
+
+                    files.slice(0, remaining).forEach((file) => addPhoto(file));
+                }
+
+                async function uploadPhotos() {
+                    if (photos.length === 0) return;
+
+                    const guestName = guestNameInput.value.trim() || "Guest";
+
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add("loading");
+                    uploadProgress.style.display = "block";
+                    progressFill.style.width = "0%";
+
+                    try {
+                        const photoData = [];
+                        for (let i = 0; i < photos.length; i++) {
+                            progressText.textContent = `Uploading photo ${i + 1} of ${photos.length}...`;
+                            progressFill.style.width = `${((i + 1) / photos.length) * 100}%`;
+
+                            const base64 = await fileToBase64(photos[i].file);
+                            photoData.push(base64);
+                        }
+
+                        const response = await fetch("/GuestUpload?handler=Upload", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "RequestVerificationToken": getAntiforgeryToken()
+                            },
+                            body: JSON.stringify({
+                                eventCode: EVENT_CODE,
+                                guestName: guestName,
+                                photoData: photoData
+                            })
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            setToast("Photos uploaded successfully!", "success");
+                            setTimeout(() => {
+                                window.location.href = `/Guest/GuestEventGallery?code=${EVENT_CODE}`;
+                            }, 1500);
+                        } else {
+                            setToast(result.message || "Upload failed. Please try again.", "error");
+                            submitBtn.disabled = false;
+                            submitBtn.classList.remove("loading");
+                            uploadProgress.style.display = "none";
+                        }
+                    } catch (error) {
+                        console.error(error);
+                        setToast("Upload failed. Please check your connection.", "error");
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove("loading");
+                        uploadProgress.style.display = "none";
+                    }
+                }
+
+                function fileToBase64(file) {
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(file);
+                    });
+                }
+
+                dropzone.addEventListener("click", () => fileInput.click());
+                fileInput.addEventListener("change", (e) => {
+                    handleFiles(e.target.files);
+                    fileInput.value = "";
+                });
+
+                submitBtn.addEventListener("click", uploadPhotos);
+
+                ["dragenter", "dragover"].forEach((evt) => {
+                    dropzone.addEventListener(evt, (e) => {
+                        e.preventDefault();
+                        dropzone.classList.add("drag-over");
+                    });
+                });
+
+                ["dragleave", "drop"].forEach((evt) => {
+                    dropzone.addEventListener(evt, (e) => {
+                        e.preventDefault();
+                        dropzone.classList.remove("drag-over");
+                    });
+                });
+
+                dropzone.addEventListener("drop", (e) => {
+                    if (e.dataTransfer && e.dataTransfer.files) handleFiles(e.dataTransfer.files);
+                });
+
+                updateCount();
             }
 
-            // ---------- decode a static image (upload / drag-drop / paste) ----------
+            if (!isEventFound) {
+                const scanBox = document.getElementById("scanBox");
+                const scanCameraBtn = document.getElementById("scanCameraBtn");
+                const cancelCameraBtn = document.getElementById("cancelCameraBtn");
+                const cameraContainer = document.getElementById("cameraContainer");
+                const cameraVideo = document.getElementById("cameraVideo");
+                const cameraCanvas = document.getElementById("cameraCanvas");
+                const qrFileInput = document.getElementById("qrFileInput");
+                const eventCodeInput = document.getElementById("eventCodeInput");
+                const manualEntryBtn = document.getElementById("manualEntryBtn");
+                const statusMsg = document.getElementById("statusMsg");
 
-            function decodeImageFile(file) {
-                if (!file || !file.type.startsWith("image/")) {
-                    setStatus("Please provide an image file.", "error");
-                    return;
+                let cameraStream = null;
+                let cameraLoopId = null;
+                let isProcessing = false;
+
+                function setStatus(message, type) {
+                    statusMsg.textContent = message || "";
+                    statusMsg.className = "toast-message" + (type ? " " + type : "");
                 }
 
-                setStatus("Reading QR code…");
+                async function submitQrData(qrData) {
+                    if (isProcessing) return;
+                    isProcessing = true;
+                    setStatus("Checking QR code…");
 
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const img = new Image();
-                    img.onload = function () {
-                        const canvas = document.createElement("canvas");
-                        canvas.width = img.width;
-                        canvas.height = img.height;
-                        const ctx = canvas.getContext("2d");
-                        ctx.drawImage(img, 0, 0);
+                    try {
+                        const response = await fetch("/GuestUpload?handler=Scan", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "RequestVerificationToken": getAntiforgeryToken()
+                            },
+                            body: JSON.stringify({ qrData })
+                        });
 
-                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const result = await response.json();
+
+                        if (result.success && result.redirectUrl) {
+                            setStatus("Event found! Directing to upload...", "success");
+                            stopCamera();
+                            window.location.href = result.redirectUrl;
+                        } else {
+                            setStatus(result.message || "Invalid QR code.", "error");
+                            isProcessing = false;
+                        }
+                    } catch (err) {
+                        setStatus("Something went wrong.", "error");
+                        isProcessing = false;
+                    }
+                }
+
+                manualEntryBtn.addEventListener("click", async function () {
+                    const code = eventCodeInput.value.trim();
+                    if (!code) {
+                        setStatus("Please enter an event code.", "error");
+                        return;
+                    }
+
+                    setStatus("Looking up event…");
+
+                    try {
+                        const response = await fetch("/GuestUpload?handler=Lookup", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "RequestVerificationToken": getAntiforgeryToken()
+                            },
+                            body: JSON.stringify({ eventCode: code })
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success && result.redirectUrl) {
+                            window.location.href = result.redirectUrl;
+                        } else {
+                            setStatus(result.message || "Event not found.", "error");
+                        }
+                    } catch (err) {
+                        setStatus("Something went wrong.", "error");
+                    }
+                });
+
+                async function startCamera() {
+                    cameraContainer.classList.add("is-active");
+                    scanCameraBtn.style.display = "none";
+
+                    try {
+                        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                        cameraVideo.srcObject = cameraStream;
+                        await cameraVideo.play();
+                        requestAnimationFrame(scanFrame);
+                    } catch (err) {
+                        setStatus("Couldn't access the camera.", "error");
+                        stopCamera();
+                    }
+                }
+
+                function stopCamera() {
+                    if (cameraLoopId) cancelAnimationFrame(cameraLoopId);
+                    if (cameraStream) cameraStream.getTracks().forEach((track) => track.stop());
+                    cameraVideo.srcObject = null;
+                    cameraContainer.classList.remove("is-active");
+                    scanCameraBtn.style.display = "";
+                }
+
+                function scanFrame() {
+                    if (!cameraStream || isProcessing) return;
+
+                    if (cameraVideo.readyState === cameraVideo.HAVE_ENOUGH_DATA) {
+                        const ctx = cameraCanvas.getContext("2d");
+                        cameraCanvas.width = cameraVideo.videoWidth;
+                        cameraCanvas.height = cameraVideo.videoHeight;
+                        ctx.drawImage(cameraVideo, 0, 0, cameraCanvas.width, cameraCanvas.height);
+
+                        const imageData = ctx.getImageData(0, 0, cameraCanvas.width, cameraCanvas.height);
                         const code = window.jsQR(imageData.data, imageData.width, imageData.height);
 
                         if (code && code.data) {
                             submitQrData(code.data);
-                        } else {
-                            setStatus("No QR code found in that image. Please try again.", "error");
+                            return;
                         }
-                    };
-                    img.onerror = function () {
-                        setStatus("That file couldn't be read as an image.", "error");
-                    };
-                    img.src = e.target.result;
-                };
-                reader.onerror = function () {
-                    setStatus("That file couldn't be read.", "error");
-                };
-                reader.readAsDataURL(file);
-            }
-
-            // ---------- upload button ----------
-
-            uploadBtn.addEventListener("click", () => qrFileInput.click());
-
-            qrFileInput.addEventListener("change", (e) => {
-                const file = e.target.files && e.target.files[0];
-                if (file) decodeImageFile(file);
-                qrFileInput.value = ""; // allow re-selecting the same file later
-            });
-
-            // ---------- drag and drop ----------
-
-            ["dragenter", "dragover"].forEach((evt) => {
-                scanBox.addEventListener(evt, (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    scanBox.classList.add("drag-over");
-                });
-            });
-
-            ["dragleave", "drop"].forEach((evt) => {
-                scanBox.addEventListener(evt, (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    scanBox.classList.remove("drag-over");
-                });
-            });
-
-            scanBox.addEventListener("drop", (e) => {
-                const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-                if (file) decodeImageFile(file);
-            });
-
-            // ---------- copy and paste ----------
-
-            document.addEventListener("paste", (e) => {
-                const items = e.clipboardData && e.clipboardData.items;
-                if (!items) return;
-
-                for (const item of items) {
-                    if (item.type.startsWith("image/")) {
-                        const file = item.getAsFile();
-                        if (file) decodeImageFile(file);
-                        break;
                     }
+                    cameraLoopId = requestAnimationFrame(scanFrame);
                 }
-            });
 
-            // ---------- live camera scan ----------
-
-            async function startCamera() {
-                setStatus("");
-                scanIdle.classList.add("is-hidden");
-                scanCamera.classList.add("is-active");
-
-                try {
-                    cameraStream = await navigator.mediaDevices.getUserMedia({
-                        video: { facingMode: "environment" }
-                    });
-                    cameraVideo.srcObject = cameraStream;
-                    await cameraVideo.play();
-                    requestAnimationFrame(scanFrame);
-                } catch (err) {
-                    console.error(err);
-                    setStatus("Couldn't access the camera. Check your browser permissions.", "error");
-                    stopCamera();
-                }
+                scanCameraBtn.addEventListener("click", startCamera);
+                cancelCameraBtn.addEventListener("click", stopCamera);
             }
-
-            function stopCamera() {
-                if (cameraLoopId) {
-                    cancelAnimationFrame(cameraLoopId);
-                    cameraLoopId = null;
-                }
-                if (cameraStream) {
-                    cameraStream.getTracks().forEach((track) => track.stop());
-                    cameraStream = null;
-                }
-                cameraVideo.srcObject = null;
-                scanCamera.classList.remove("is-active");
-                scanIdle.classList.remove("is-hidden");
-            }
-
-            function scanFrame() {
-                if (!cameraStream || isProcessing) {
-                    if (cameraStream) cameraLoopId = requestAnimationFrame(scanFrame);
-                    return;
-                }
-
-                if (cameraVideo.readyState === cameraVideo.HAVE_ENOUGH_DATA) {
-                    const ctx = cameraCanvas.getContext("2d");
-                    cameraCanvas.width = cameraVideo.videoWidth;
-                    cameraCanvas.height = cameraVideo.videoHeight;
-                    ctx.drawImage(cameraVideo, 0, 0, cameraCanvas.width, cameraCanvas.height);
-
-                    const imageData = ctx.getImageData(0, 0, cameraCanvas.width, cameraCanvas.height);
-                    const code = window.jsQR(imageData.data, imageData.width, imageData.height);
-
-                    if (code && code.data) {
-                        submitQrData(code.data);
-                        return; // stop the scan loop; submitQrData will redirect or reset isProcessing
-                    }
-                }
-
-                cameraLoopId = requestAnimationFrame(scanFrame);
-            }
-
-            scanCameraBtn.addEventListener("click", startCamera);
-            cancelCameraBtn.addEventListener("click", stopCamera);
-
-            // Clean up camera if the guest navigates away mid-scan
-            window.addEventListener("beforeunload", stopCamera);
         })();
     </script>
 </body>
 </html>
+
