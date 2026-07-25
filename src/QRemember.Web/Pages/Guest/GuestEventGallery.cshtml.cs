@@ -3,18 +3,19 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using QRemember.Web.Data;
-using QRemember.Web.Models;
 
 namespace QRemember.Web.Pages.Guest;
 
 [AllowAnonymous]
 public class GuestEventGalleryModel : PageModel
 {
-    private readonly AppDbContext _db;
+    private readonly AppDbContext _dbContext;
+    private readonly ILogger<GuestEventGalleryModel> _logger;
 
-    public GuestEventGalleryModel(AppDbContext db)
+    public GuestEventGalleryModel(AppDbContext dbContext, ILogger<GuestEventGalleryModel> logger)
     {
-        _db = db;
+        _dbContext = dbContext;
+        _logger = logger;
     }
 
     public record GalleryPhoto(int Id, string ImageUrl, string AuthorName, string? Caption);
@@ -32,39 +33,54 @@ public class GuestEventGalleryModel : PageModel
     {
         if (string.IsNullOrWhiteSpace(code))
         {
-            // Load mock data for preview if no code provided
             LoadMockData();
             return Page();
         }
 
-        var normalizedCode = code.Trim();
-
-        var eventEntity = await _db.Events
-            .AsNoTracking()
-            .Include(e => e.Organizer)
-            .FirstOrDefaultAsync(e => e.EventCode.ToLower() == normalizedCode.ToLower() && e.IsActive, cancellationToken);
-
+        var eventEntity = await GetEventByCodeAsync(code.Trim(), cancellationToken);
+        
         if (eventEntity is null)
         {
-            // If event not found, show mock data or return not found
             LoadMockData();
             return Page();
         }
 
-        // Populate from database
+        await LoadEventDataAsync(eventEntity, cancellationToken);
+        return Page();
+    }
+
+    private async Task<Event?> GetEventByCodeAsync(string code, CancellationToken cancellationToken)
+    {
+        return await _dbContext.Events
+            .AsNoTracking()
+            .Include(e => e.Organizer)
+            .FirstOrDefaultAsync(e => e.EventCode.ToLower() == code.ToLower() && e.IsActive, cancellationToken);
+    }
+
+    private async Task LoadEventDataAsync(Event eventEntity, CancellationToken cancellationToken)
+    {
         EventName = eventEntity.Name;
         EventCode = eventEntity.EventCode;
         EventHashtag = eventEntity.EventCode;
         EventDateDisplay = eventEntity.EventDate.ToString("MMMM d, yyyy");
-        OrganizerDisplayName = eventEntity.Organizer?.DisplayName
-            ?? eventEntity.Organizer?.Email
-            ?? "Organizer";
+        OrganizerDisplayName = GetOrganizerDisplayName(eventEntity.Organizer);
         EventDescription = eventEntity.Description;
 
-        // Get photos from database
-        var photos = await _db.Photos
+        var photos = await GetPhotosForEventAsync(eventEntity.Id, cancellationToken);
+        Photos = photos;
+        HeroImageUrl = photos.FirstOrDefault()?.ImageUrl;
+    }
+
+    private string GetOrganizerDisplayName(User? organizer)
+    {
+        return organizer?.DisplayName ?? organizer?.Email ?? "Organizer";
+    }
+
+    private async Task<List<GalleryPhoto>> GetPhotosForEventAsync(int eventId, CancellationToken cancellationToken)
+    {
+        return await _dbContext.Photos
             .AsNoTracking()
-            .Where(p => p.EventId == eventEntity.Id && p.IsApproved && !p.IsHidden)
+            .Where(p => p.EventId == eventId && p.IsApproved && !p.IsHidden)
             .OrderByDescending(p => p.UploadedAt)
             .Select(p => new GalleryPhoto(
                 p.Id,
@@ -72,18 +88,10 @@ public class GuestEventGalleryModel : PageModel
                 p.UploaderName ?? "Guest",
                 p.Caption))
             .ToListAsync(cancellationToken);
-
-        Photos = photos;
-
-        // Use first photo as hero if available, otherwise null
-        HeroImageUrl = photos.FirstOrDefault()?.ImageUrl;
-
-        return Page();
     }
 
     private void LoadMockData()
     {
-        // This is just for preview/testing when no real event is found
         EventName = "Sample Event";
         EventCode = "sample-event";
         EventHashtag = "sample-event";
@@ -91,7 +99,6 @@ public class GuestEventGalleryModel : PageModel
         OrganizerDisplayName = "Event Organizer";
         EventDescription = "This is a sample event. Create your own event to start collecting memories!";
         HeroImageUrl = null;
-
         Photos = new List<GalleryPhoto>();
     }
 }

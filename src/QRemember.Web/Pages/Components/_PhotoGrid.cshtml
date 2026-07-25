@@ -1,0 +1,37 @@
+@model List<GuestEventGalleryModel.GalleryPhoto>
+
+@{
+    var photos = Model;
+    var photoIndex = 0;
+    var rowIndex = 0;
+}
+
+@while (photoIndex < photos.Count)
+{
+    var cols = rowIndex % 2 == 0 ? 2 : 3;
+    var rowClass = cols == 2 ? "cols-2" : "cols-3";
+    var take = Math.Min(cols, photos.Count - photoIndex);
+    var rowPhotos = photos.GetRange(photoIndex, take);
+
+    <div class="gallery-row @rowClass">
+        @foreach (var photo in rowPhotos)
+        {
+            <article class="photo-card">
+                <img src="@photo.ImageUrl"
+                     alt="Photo by @photo.AuthorName"
+                     loading="lazy"
+                     onload="this.classList.add('loaded')" />
+                <div class="photo-meta">
+                    <p class="photo-author">@(!string.IsNullOrWhiteSpace(photo.AuthorName) ? photo.AuthorName : "Anonymous")</p>
+                    @if (!string.IsNullOrWhiteSpace(photo.Caption))
+                    {
+                        <p class="photo-caption">@photo.Caption</p>
+                    }
+                </div>
+            </article>
+        }
+    </div>
+
+    photoIndex += take;
+    rowIndex++;
+}

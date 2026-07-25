@@ -1,0 +1,37 @@
+@model HeroSectionModel
+
+<header class="hero @(!Model.HasHeroImage ? "placeholder" : "")"
+        style="@(Model.HasHeroImage ? $"background-image: url('{Model.HeroImageUrl}');" : "")">
+    @if (!Model.HasHeroImage)
+    {
+        <div class="pattern"></div>
+    }
+
+    <div class="hero-main">
+        <h1 class="hero-title">@(!string.IsNullOrWhiteSpace(Model.EventName) ? Model.EventName : "Event Gallery")</h1>
+        <p class="hero-date">@(!string.IsNullOrWhiteSpace(Model.EventDateDisplay) ? Model.EventDateDisplay : DateTime.Now.ToString("MMMM d, yyyy"))</p>
+        <p class="hero-organizer">by @(!string.IsNullOrWhiteSpace(Model.OrganizerDisplayName) ? Model.OrganizerDisplayName : "Organizer")</p>
+
+        @if (!string.IsNullOrWhiteSpace(Model.EventDescription))
+        {
+            <p class="hero-description">@Model.EventDescription</p>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Model.EventCode))
+        {
+            <span class="event-badge">#@Model.EventCode</span>
+        }
+    </div>
+
+    <a href="/Guest/GuestUpload?code=@Model.EventCode" class="share-link" aria-label="Share a photo">
+        <span class="share-btn" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+                <line x1="19" y1="8" x2="19" y2="5"></line>
+                <line x1="19" y1="5" x2="22" y2="5"></line>
+            </svg>
+        </span>
+        <span class="share-label">Share</span>
+    </a>
+</header>

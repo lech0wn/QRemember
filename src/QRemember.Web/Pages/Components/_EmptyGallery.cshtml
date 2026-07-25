@@ -1,0 +1,10 @@
+@model EmptyGalleryModel
+
+<div class="empty-state">
+    <div class="empty-icon">📷</div>
+    <h3>No photos yet</h3>
+    <p>Be the first to share a memory from this event!</p>
+    <a href="/Guest/GuestUpload?code=@Model.EventCode" class="upload-prompt">
+        Share a Photo
+    </a>
+</div>
