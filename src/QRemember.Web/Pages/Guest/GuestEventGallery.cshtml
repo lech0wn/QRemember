@@ -1,11 +1,11 @@
 @page "/Guest/GuestEventGallery/"
 @model QRemember.Web.Pages.Guest.GuestEventGalleryModel
+@using QRemember.Web.Models.ViewModels
 @{
     Layout = null;
     ViewData["Title"] = Model.EventName;
 
     var photos = Model.Photos?.ToList() ?? new List<GuestEventGalleryModel.GalleryPhoto>();
-    var hasHeroImage = !string.IsNullOrWhiteSpace(Model.HeroImageUrl);
 }
 
 <!DOCTYPE html>
@@ -24,7 +24,15 @@
     <link rel="stylesheet" href="~/css/gallery.min.css" asp-append-version="true" />
 </head>
 <body>
-    @await Html.PartialAsync("_HeroSection", new { Model.EventName, Model.EventDateDisplay, Model.OrganizerDisplayName, Model.EventDescription, Model.EventCode, Model.HeroImageUrl })
+    @await Html.PartialAsync("/Pages/Components/_HeroSection.cshtml", new HeroSectionModel
+    {
+        EventName = Model.EventName,
+        EventDateDisplay = Model.EventDateDisplay,
+        OrganizerDisplayName = Model.OrganizerDisplayName,
+        EventDescription = Model.EventDescription,
+        EventCode = Model.EventCode,
+        HeroImageUrl = Model.HeroImageUrl
+    })
 
     <main class="gallery">
         <div class="gallery-header">
@@ -34,11 +42,11 @@
 
         @if (photos.Count == 0)
         {
-            @await Html.PartialAsync("_EmptyGallery", new { EventCode = Model.EventCode })
+            @await Html.PartialAsync("/Pages/Components/_EmptyGallery.cshtml", new EmptyGalleryModel { EventCode = Model.EventCode })
         }
         else
         {
-            @await Html.PartialAsync("_PhotoGrid", photos)
+            @await Html.PartialAsync("/Pages/Components/_PhotoGrid.cshtml", photos)
         }
     </main>
 

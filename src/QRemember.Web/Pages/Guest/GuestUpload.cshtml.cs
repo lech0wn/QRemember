@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using QRemember.Web.Data;
+using QRemember.Web.Models;
+using QRemember.Web.Models.ViewModels;
 
-namespace QRemember.Web.Pages;
+namespace QRemember.Web.Pages.Guest;
 
 [AllowAnonymous]
 public class GuestUploadModel : PageModel
@@ -19,7 +21,7 @@ public class GuestUploadModel : PageModel
     }
 
     public const int MaxPhotosLimit = 15;
-    
+
     public int MaxPhotos => MaxPhotosLimit;
     public string? EventCode { get; private set; }
     public string? EventName { get; private set; }
@@ -37,7 +39,7 @@ public class GuestUploadModel : PageModel
         }
 
         var eventEntity = await FindActiveEventAsync(code.Trim());
-        
+
         if (eventEntity is null)
         {
             ErrorMessage = "Event not found or no longer active.";
@@ -76,7 +78,7 @@ public class GuestUploadModel : PageModel
             return JsonError("This event has expired.");
         }
 
-        return JsonSuccess(Url.Page("/GuestUpload", new { code = eventCode }));
+        return JsonSuccess(Url.Page("/Guest/GuestUpload", new { code = eventCode }));
     }
 
     public async Task<IActionResult> OnPostLookupAsync([FromBody] LookupRequest request)
@@ -99,7 +101,7 @@ public class GuestUploadModel : PageModel
             return JsonError("This event has expired.");
         }
 
-        return JsonSuccess(Url.Page("/GuestUpload", new { code = eventCode }));
+        return JsonSuccess(Url.Page("/Guest/GuestUpload", new { code = eventCode }));
     }
 
     public async Task<IActionResult> OnPostUploadAsync([FromBody] UploadRequest request)
@@ -110,7 +112,7 @@ public class GuestUploadModel : PageModel
         }
 
         var eventEntity = await FindActiveEventAsync(request.EventCode.Trim());
-        
+
         if (eventEntity is null)
         {
             return JsonError("Event not found.");
@@ -123,8 +125,9 @@ public class GuestUploadModel : PageModel
 
         try
         {
+            // Pass the non-null eventEntity to the processing method
             await ProcessPhotoUploadsAsync(eventEntity, request);
-            
+
             return new JsonResult(new
             {
                 success = true,
@@ -135,7 +138,7 @@ public class GuestUploadModel : PageModel
         catch (Exception ex)
         {
             _logger.LogError(ex, "Photo upload failed for event {EventCode}", request.EventCode);
-            return JsonError($"Upload failed: {ex.Message}");
+            return JsonError("Upload failed. Please try again.");
         }
     }
 
@@ -169,7 +172,7 @@ public class GuestUploadModel : PageModel
         return new JsonResult(new { success = false, message });
     }
 
-    private IActionResult JsonSuccess(string redirectUrl)
+    private IActionResult JsonSuccess(string? redirectUrl)
     {
         return new JsonResult(new { success = true, redirectUrl });
     }
@@ -180,9 +183,9 @@ public class GuestUploadModel : PageModel
         // 1. Upload each photo to Cloudinary
         // 2. Save photo records to database
         // 3. Associate with eventEntity.Id
-        
+
         await Task.Delay(500); // Simulate processing
-        _logger.LogInformation("Processing {Count} photos for event {EventCode}", 
+        _logger.LogInformation("Processing {Count} photos for event {EventCode}",
             request.PhotoData.Count, request.EventCode);
     }
 
