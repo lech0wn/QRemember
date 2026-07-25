@@ -1,0 +1,44 @@
+@model dynamic
+
+<main>
+    <h1 class="page-title">Find Your Event</h1>
+    <p class="page-subtitle">Scan an event QR code or enter your code below</p>
+
+    @if (!string.IsNullOrWhiteSpace(Model?.ErrorMessage))
+    {
+        <p class="toast-message error">@Model.ErrorMessage</p>
+    }
+
+    <div class="scan-card" id="scanBox" tabindex="0">
+        <svg class="scan-card-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"></path>
+            <rect x="7" y="7" width="10" height="10" rx="1"></rect>
+        </svg>
+        <p class="scan-card-title">Scan the event QR code</p>
+
+        <div class="camera-viewport" id="cameraContainer">
+            <video id="cameraVideo" playsinline muted></video>
+            <canvas id="cameraCanvas" hidden></canvas>
+            <div class="camera-frame"></div>
+            <button type="button" class="scan-action-btn scan-action-btn--ghost" id="cancelCameraBtn" style="margin-top:12px;">Cancel</button>
+        </div>
+
+        <button type="button" class="scan-action-btn" id="scanCameraBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+            Scan QR Code
+        </button>
+
+        <span class="divider">— OR —</span>
+
+        <input type="text" id="eventCodeInput" class="code-input" placeholder="Enter event code" maxlength="50" />
+
+        <button type="button" class="scan-action-btn" id="manualEntryBtn">Find Event</button>
+
+        <input type="file" id="qrFileInput" accept="image/*" class="visually-hidden" />
+    </div>
+
+    <p class="toast-message" id="statusMsg" role="status" aria-live="polite"></p>
+</main>

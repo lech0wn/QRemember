@@ -9,14 +9,18 @@ namespace QRemember.Web.Pages;
 [AllowAnonymous]
 public class GuestUploadModel : PageModel
 {
-    private readonly AppDbContext _db;
+    private readonly AppDbContext _dbContext;
+    private readonly ILogger<GuestUploadModel> _logger;
 
-    public GuestUploadModel(AppDbContext db)
+    public GuestUploadModel(AppDbContext dbContext, ILogger<GuestUploadModel> logger)
     {
-        _db = db;
+        _dbContext = dbContext;
+        _logger = logger;
     }
 
-    public int MaxPhotos { get; } = 15;
+    public const int MaxPhotosLimit = 15;
+    
+    public int MaxPhotos => MaxPhotosLimit;
     public string? EventCode { get; private set; }
     public string? EventName { get; private set; }
     public string? EventHashtag { get; private set; }
@@ -28,16 +32,12 @@ public class GuestUploadModel : PageModel
     {
         if (string.IsNullOrWhiteSpace(code))
         {
-            // No code provided - show QR scanner mode
             EventFound = false;
             return Page();
         }
 
-        // Code provided - try to find the event
-        var eventEntity = await _db.Events
-            .AsNoTracking()
-            .FirstOrDefaultAsync(e => e.EventCode == code && e.IsActive);
-
+        var eventEntity = await FindActiveEventAsync(code.Trim());
+        
         if (eventEntity is null)
         {
             ErrorMessage = "Event not found or no longer active.";
@@ -45,128 +45,86 @@ public class GuestUploadModel : PageModel
             return Page();
         }
 
-        if (eventEntity.ExpiresAt <= DateTime.UtcNow)
+        if (IsEventExpired(eventEntity))
         {
             ErrorMessage = "This event has expired.";
             EventFound = false;
             return Page();
         }
 
-        // Event found - show upload mode
-        EventFound = true;
-        EventCode = eventEntity.EventCode;
-        EventName = eventEntity.Name;
-        EventHashtag = eventEntity.EventCode;
-        EventId = eventEntity.Id;
-
+        LoadEventData(eventEntity);
         return Page();
     }
 
-    // Handle QR code scanning - find event by code
     public async Task<IActionResult> OnPostScanAsync([FromBody] ScanRequest request)
     {
-        if (request is null || string.IsNullOrWhiteSpace(request.QrData))
+        if (!IsValidScanRequest(request))
         {
-            return new JsonResult(new ScanResponse
-            {
-                Success = false,
-                Message = "That QR code couldn't be read. Please try again."
-            });
+            return JsonError("That QR code couldn't be read. Please try again.");
         }
 
-        var eventCode = request.QrData.Trim();
-
-        var eventEntity = await _db.Events
-            .FirstOrDefaultAsync(e => e.EventCode == eventCode && e.IsActive);
+        var eventCode = request!.QrData.Trim();
+        var eventEntity = await FindActiveEventAsync(eventCode);
 
         if (eventEntity is null)
         {
-            return new JsonResult(new ScanResponse
-            {
-                Success = false,
-                Message = "Event not found. Please check the QR code."
-            });
+            return JsonError("Event not found. Please check the QR code.");
         }
 
-        if (eventEntity.ExpiresAt <= DateTime.UtcNow)
+        if (IsEventExpired(eventEntity))
         {
-            return new JsonResult(new ScanResponse
-            {
-                Success = false,
-                Message = "This event has expired."
-            });
+            return JsonError("This event has expired.");
         }
 
-        // Redirect to the same page with the event code
-        return new JsonResult(new ScanResponse
-        {
-            Success = true,
-            RedirectUrl = Url.Page("/GuestUpload", new { code = eventCode })
-        });
+        return JsonSuccess(Url.Page("/GuestUpload", new { code = eventCode }));
     }
 
-    // Handle manual event code entry
     public async Task<IActionResult> OnPostLookupAsync([FromBody] LookupRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.EventCode))
+        if (string.IsNullOrWhiteSpace(request?.EventCode))
         {
-            return new JsonResult(new { success = false, message = "Please enter an event code." });
+            return JsonError("Please enter an event code.");
         }
 
         var eventCode = request.EventCode.Trim();
-
-        var eventEntity = await _db.Events
-            .FirstOrDefaultAsync(e => e.EventCode == eventCode && e.IsActive);
+        var eventEntity = await FindActiveEventAsync(eventCode);
 
         if (eventEntity is null)
         {
-            return new JsonResult(new { success = false, message = "Event not found." });
+            return JsonError("Event not found.");
         }
 
-        if (eventEntity.ExpiresAt <= DateTime.UtcNow)
+        if (IsEventExpired(eventEntity))
         {
-            return new JsonResult(new { success = false, message = "This event has expired." });
+            return JsonError("This event has expired.");
         }
 
-        return new JsonResult(new
-        {
-            success = true,
-            redirectUrl = Url.Page("/GuestUpload", new { code = eventCode })
-        });
+        return JsonSuccess(Url.Page("/GuestUpload", new { code = eventCode }));
     }
 
-    // Handle photo upload
     public async Task<IActionResult> OnPostUploadAsync([FromBody] UploadRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.EventCode))
+        if (string.IsNullOrWhiteSpace(request?.EventCode))
         {
-            return new JsonResult(new { success = false, message = "Event code is required." });
+            return JsonError("Event code is required.");
         }
 
-        var eventEntity = await _db.Events
-            .FirstOrDefaultAsync(e => e.EventCode == request.EventCode && e.IsActive);
-
+        var eventEntity = await FindActiveEventAsync(request.EventCode.Trim());
+        
         if (eventEntity is null)
         {
-            return new JsonResult(new { success = false, message = "Event not found." });
+            return JsonError("Event not found.");
         }
 
         if (request.PhotoData == null || request.PhotoData.Count == 0)
         {
-            return new JsonResult(new { success = false, message = "No photos to upload." });
+            return JsonError("No photos to upload.");
         }
 
         try
         {
-            // TODO: Upload photos to Cloudinary or other service
-            // For each photo in request.PhotoData:
-            // 1. Upload to Cloudinary
-            // 2. Save to database with eventId = eventEntity.Id
-            // 3. Set uploader name = request.GuestName
-
-            // Simulate successful upload
-            await Task.Delay(500);
-
+            await ProcessPhotoUploadsAsync(eventEntity, request);
+            
             return new JsonResult(new
             {
                 success = true,
@@ -176,12 +134,56 @@ public class GuestUploadModel : PageModel
         }
         catch (Exception ex)
         {
-            return new JsonResult(new
-            {
-                success = false,
-                message = $"Upload failed: {ex.Message}"
-            });
+            _logger.LogError(ex, "Photo upload failed for event {EventCode}", request.EventCode);
+            return JsonError($"Upload failed: {ex.Message}");
         }
+    }
+
+    private async Task<Event?> FindActiveEventAsync(string code)
+    {
+        return await _dbContext.Events
+            .FirstOrDefaultAsync(e => e.EventCode == code && e.IsActive);
+    }
+
+    private bool IsEventExpired(Event eventEntity)
+    {
+        return eventEntity.ExpiresAt <= DateTime.UtcNow;
+    }
+
+    private void LoadEventData(Event eventEntity)
+    {
+        EventFound = true;
+        EventCode = eventEntity.EventCode;
+        EventName = eventEntity.Name;
+        EventHashtag = eventEntity.EventCode;
+        EventId = eventEntity.Id;
+    }
+
+    private bool IsValidScanRequest(ScanRequest? request)
+    {
+        return request is not null && !string.IsNullOrWhiteSpace(request.QrData);
+    }
+
+    private IActionResult JsonError(string message)
+    {
+        return new JsonResult(new { success = false, message });
+    }
+
+    private IActionResult JsonSuccess(string redirectUrl)
+    {
+        return new JsonResult(new { success = true, redirectUrl });
+    }
+
+    private async Task ProcessPhotoUploadsAsync(Event eventEntity, UploadRequest request)
+    {
+        // TODO: Implement actual photo upload logic
+        // 1. Upload each photo to Cloudinary
+        // 2. Save photo records to database
+        // 3. Associate with eventEntity.Id
+        
+        await Task.Delay(500); // Simulate processing
+        _logger.LogInformation("Processing {Count} photos for event {EventCode}", 
+            request.PhotoData.Count, request.EventCode);
     }
 
     public class ScanRequest
@@ -199,12 +201,5 @@ public class GuestUploadModel : PageModel
         public string EventCode { get; set; } = string.Empty;
         public string GuestName { get; set; } = string.Empty;
         public List<string> PhotoData { get; set; } = new List<string>();
-    }
-
-    public class ScanResponse
-    {
-        public bool Success { get; set; }
-        public string? Message { get; set; }
-        public string? RedirectUrl { get; set; }
     }
 }
