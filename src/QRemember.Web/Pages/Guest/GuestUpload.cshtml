@@ -23,7 +23,7 @@
 
         @if (isEventFound)
         {
-            @await Html.PartialAsync("_UploadForm", new UploadFormModel
+            @await Html.PartialAsync("UploadForm", new UploadFormModel
             {
                 EventName = Model.EventName,
                 EventHashtag = Model.EventHashtag,

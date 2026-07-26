@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using QRemember.Web.Data;
+using QRemember.Web.Models;
 
 namespace QRemember.Web.Pages.Guest;
 
@@ -71,7 +72,7 @@ public class GuestEventGalleryModel : PageModel
         HeroImageUrl = photos.FirstOrDefault()?.ImageUrl;
     }
 
-    private string GetOrganizerDisplayName(User? organizer)
+    private string GetOrganizerDisplayName(ApplicationUser? organizer)
     {
         return organizer?.DisplayName ?? organizer?.Email ?? "Organizer";
     }

@@ -27,4 +27,5 @@ public class Photo
     public bool IsApproved { get; set; } = true;
 
     public bool IsHidden { get; set; } = false;
+    public string Status => IsHidden ? "hidden" : (IsApproved ? "approved" : "pending");
 }

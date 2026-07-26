@@ -1,4 +1,4 @@
-@model HeroSectionModel
+@model QRemember.Web.Models.ViewModels.HeroSectionModel
 
 <header class="hero @(!Model.HasHeroImage ? "placeholder" : "")"
         style="@(Model.HasHeroImage ? $"background-image: url('{Model.HeroImageUrl}');" : "")">
