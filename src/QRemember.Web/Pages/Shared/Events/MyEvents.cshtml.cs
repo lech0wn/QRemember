@@ -25,7 +25,7 @@ public class MyEventsModel : PageModel
         _userManager = userManager;
     }
 
-    public record EventCardViewModel(string EventCode, string Title, int Year, string GradientFrom, string GradientTo, int PhotoHeight, DateTime ExpiresAtUtc);
+    public record EventCardViewModel(string EventCode, string Title, int Year, string GradientFrom, string GradientTo, int PhotoHeight, DateTime ExpiresAtUtc, string? CoverPhotoUrl, string? CoverPhotoUploaderName);
 
     public List<EventCardViewModel> Events { get; } = new();
 
@@ -38,10 +38,20 @@ public class MyEventsModel : PageModel
             .OrderByDescending(e => e.CreatedAt)
             .ToListAsync();
 
+        var eventIds = events.Select(e => e.Id).ToList();
+
+        var coverPhotos = await _db.Photos
+            .Where(p => eventIds.Contains(p.EventId) && p.IsApproved && !p.IsHidden)
+            .OrderBy(p => p.UploadedAt)
+            .GroupBy(p => p.EventId)
+            .Select(g => g.First())
+            .ToDictionaryAsync(p => p.EventId, p => new { p.CloudinaryUrl, p.UploaderName });
+
         for (var i = 0; i < events.Count; i++)
         {
             var (from, to) = Gradients[i % Gradients.Length];
-            Events.Add(new EventCardViewModel(events[i].EventCode, events[i].Name, events[i].EventDate.Year, from, to, 220, events[i].ExpiresAt));
+            coverPhotos.TryGetValue(events[i].Id, out var coverPhoto);
+            Events.Add(new EventCardViewModel(events[i].EventCode, events[i].Name, events[i].EventDate.Year, from, to, 220, events[i].ExpiresAt, coverPhoto?.CloudinaryUrl, coverPhoto?.UploaderName));
         }
     }
 
