@@ -33,6 +33,9 @@ public class Event
 
     public bool IsActive { get; set; } = true;
 
+    // When on, guest-uploaded photos skip moderation and are approved immediately.
+    public bool AutoApprovePhotos { get; set; } = false;
+
     // Foreign key to the organizer (ApplicationUser)
     [Required]
     public string OrganizerId { get; set; } = string.Empty;

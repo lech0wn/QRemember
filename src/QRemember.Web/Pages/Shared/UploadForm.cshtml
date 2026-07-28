@@ -1,9 +1,9 @@
 @model QRemember.Web.Models.ViewModels.UploadFormModel
 
 <main>
-    <h1 class="page-title">Share Photos</h1>
-    <p class="page-subtitle">Upload your photos to <strong>@Model.EventName</strong></p>
-    <div class="event-tag">#@Model.EventHashtag</div>
+    <p class="eyebrow">Now Exhibiting</p>
+    <div class="event-name">@Model.EventName</div>
+    <p class="page-subtitle">@(string.IsNullOrWhiteSpace(Model.EventDescription) ? "A place to share photos from the event. Join in and add your own photos." : Model.EventDescription)</p>
 
     <div class="form-group">
         <label class="field-label" for="guestName">Guest Name (Optional)</label>
@@ -42,3 +42,48 @@
 
     <p class="toast-message" id="toast" role="status" aria-live="polite"></p>
 </main>
+
+<section class="recent-section">
+    <div class="recent-header">
+        <h2 class="recent-heading">Recent Submissions</h2>
+        @if (Model.RecentPhotos.Count > 0)
+        {
+            <button type="button" class="select-toggle-btn" id="selectToggleBtn">Select</button>
+        }
+    </div>
+
+    @if (Model.RecentPhotos.Count == 0)
+    {
+        <p class="recent-empty">No photos yet — be the first to share one!</p>
+    }
+    else
+    {
+        <div class="recent-grid" id="recentGrid">
+            @foreach (var photo in Model.RecentPhotos)
+            {
+                <article class="recent-card" data-photo-url="@photo.ImageUrl" data-photo-author="@photo.AuthorName">
+                    <img src="@photo.ImageUrl" alt="Photo by @photo.AuthorName" loading="lazy" />
+                    <span class="recent-check" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </span>
+                </article>
+            }
+        </div>
+    }
+</section>
+
+<div class="save-bar" id="saveBar" hidden>
+    <span id="saveCount">0 selected</span>
+    <button type="button" class="save-bar-btn" id="saveSelectedBtn">Save</button>
+</div>
+
+<div class="lightbox" id="lightbox" hidden>
+    <button type="button" class="lightbox-close" id="lightboxClose" aria-label="Close">&times;</button>
+    <button type="button" class="lightbox-nav lightbox-prev" id="lightboxPrev" aria-label="Previous photo">&#8249;</button>
+    <img class="lightbox-img" id="lightboxImg" src="" alt="" />
+    <button type="button" class="lightbox-nav lightbox-next" id="lightboxNext" aria-label="Next photo">&#8250;</button>
+    <button type="button" class="lightbox-save" id="lightboxSave">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Save
+    </button>
+</div>
