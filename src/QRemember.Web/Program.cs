@@ -58,14 +58,14 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false; // adjust later if you add email confirmation
 
-    // Keep this in sync with the [MinLength] validation on Register/ResetPassword —
-    // length is the only rule we enforce, so the client-side hint always matches
-    // what the server actually accepts.
+    // Keep this in sync with the [MinLength]/[RegularExpression] validation on
+    // Register/ResetPassword — the client-side hint must match what the server
+    // actually accepts.
     options.Password.RequiredLength = 8;
-    options.Password.RequireDigit = false;
+    options.Password.RequireDigit = true;
     options.Password.RequireLowercase = false;
-    options.Password.RequireUppercase = false;
-    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = true;
 })
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();

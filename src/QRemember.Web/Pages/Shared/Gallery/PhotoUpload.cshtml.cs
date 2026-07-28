@@ -121,7 +121,7 @@ public class PhotoUploadModel : PageModel
 
         await _db.SaveChangesAsync(cancellationToken);
 
-        return RedirectToPage("/Shared/Gallery/EventGallery", new { code = EventCode });
+        return RedirectToPage("/Shared/Events/EventDetail", new { code = EventCode });
     }
 
     private async Task<QRemember.Web.Models.Event?> LoadEventAsync(string? code, CancellationToken cancellationToken)
