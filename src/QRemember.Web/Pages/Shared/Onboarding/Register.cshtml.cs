@@ -19,13 +19,13 @@ public class RegisterModel : PageModel
 
     [BindProperty]
     [Required(ErrorMessage = "Email is required")]
-    [EmailAddress]
+    [EmailAddress(ErrorMessage = "Enter a valid email address")]
     public required string Email { get; set; }
 
     [BindProperty]
     [Required(ErrorMessage = "Password is required")]
     [DataType(DataType.Password)]
-    [MinLength(6, ErrorMessage = "Password must be at least 6 characters")]
+    [MinLength(8, ErrorMessage = "Password must be at least 8 characters")]
     public required string Password { get; set; }
 
     [BindProperty]

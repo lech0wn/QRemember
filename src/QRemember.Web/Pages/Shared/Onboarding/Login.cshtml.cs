@@ -17,7 +17,7 @@ public class LoginModel : PageModel
 
     [BindProperty]
     [Required(ErrorMessage = "Email is required")]
-    [EmailAddress]
+    [EmailAddress(ErrorMessage = "Enter a valid email address")]
     public required string Email { get; set; }
 
     [BindProperty]
@@ -27,6 +27,9 @@ public class LoginModel : PageModel
 
     [BindProperty(SupportsGet = true)]
     public bool Registered { get; set; }
+
+    [BindProperty(SupportsGet = true)]
+    public bool PasswordReset { get; set; }
 
     public void OnGet()
     {
