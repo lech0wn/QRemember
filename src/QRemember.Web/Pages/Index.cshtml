@@ -1,7 +1,6 @@
-﻿@page
-@model IndexModel
+@page
 @{
-    ViewData["Title"] = "Be our Guest!";
+    ViewData["Title"] = "QRemember — Preserve the Narrative";
     Layout = null;
 }
 <!DOCTYPE html>
@@ -9,451 +8,637 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>@ViewData["Title"] — QRemember</title>
+    <title>@ViewData["Title"]</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet" />
     <style>
         :root {
+            --accent: #B8975A;
+            --bg: #FAF9F6;
             --text: #1C1C1C;
-            --muted: #6B6B6B;
-            --card-bg: #ffffff;
-            --scan-bg: #141414;
-            --page-bg: #4a4a4a;
-            --error: #b00020;
+            --muted: #8C8C8C;
         }
 
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
 
         html, body {
             margin: 0;
-            min-height: 100%;
+            padding: 0;
         }
 
         body {
             font-family: 'Inter', sans-serif;
             color: var(--text);
-            background: var(--page-bg);
-            min-height: 100vh;
+            background: var(--bg);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        img {
+            max-width: 100%;
+            display: block;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .wrap {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+
+        .eyebrow {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent);
+        }
+
+        /* ---------- Nav ---------- */
+        .site-nav {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: var(--bg);
+            border-bottom: 1px solid rgba(28, 28, 28, 0.08);
+        }
+
+        .site-nav .wrap {
             display: flex;
             align-items: center;
+            justify-content: space-between;
+            height: 76px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            font-size: 14px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .brand-logo {
+            height: 34px;
+            width: auto;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 36px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links a {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text);
+        }
+
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+
+        .nav-links .nav-cta {
+            text-decoration: underline;
+            text-underline-offset: 4px;
+        }
+
+        .nav-toggle {
+            display: none;
+        }
+
+        /* ---------- Buttons ---------- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
             justify-content: center;
-            padding: 32px 16px;
-            position: relative;
-            overflow-x: hidden;
+            padding: 15px 28px;
+            font-family: 'Inter', sans-serif;
+            font-size: 12.5px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            border: 1px solid transparent;
+            white-space: nowrap;
         }
 
-        .backdrop {
-            position: fixed;
-            inset: 0;
-            background-image: url('images/auth-pic.jpg');
-            background-size: cover;
-            background-position: center;
-            filter: grayscale(1) brightness(0.55);
-            z-index: 0;
+        .btn-primary {
+            background: var(--text);
+            color: var(--bg);
         }
 
-        .card {
-            position: relative;
-            z-index: 1;
+        .btn-primary:hover {
+            background: #333;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text);
+            border-color: rgba(28, 28, 28, 0.35);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--text);
+        }
+
+        /* ---------- Hero ---------- */
+        .hero {
+            padding: 88px 0 110px;
+        }
+
+        .hero .wrap {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 64px;
+            align-items: center;
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 500;
+            font-size: 46px;
+            line-height: 1.15;
+            margin: 18px 0 20px;
+        }
+
+        .hero p {
+            font-size: 15px;
+            line-height: 1.7;
+            color: var(--muted);
+            max-width: 420px;
+            margin: 0 0 32px;
+        }
+
+        .hero-media img {
             width: 100%;
-            max-width: 400px;
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 32px 28px 24px;
-            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
-            text-align: center;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+            box-shadow: 0 30px 70px rgba(28, 28, 28, 0.18);
         }
 
-        .brand-row {
+        /* ---------- How it works ---------- */
+        .section {
+            padding: 90px 0;
+        }
+
+        .section-header {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-bottom: 20px;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 56px;
+            border-bottom: 1px solid rgba(28, 28, 28, 0.1);
+            padding-bottom: 28px;
         }
 
-        .brand-q {
-            font-size: 52px;
-            font-weight: 400;
+        .section-header h2 {
+            font-family: 'Playfair Display', serif;
             font-style: italic;
-            font-family: Georgia, 'Times New Roman', serif;
-            line-height: 1;
+            font-weight: 500;
+            font-size: 32px;
+            margin: 0;
         }
 
-        .brand-qr-icon {
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+        }
+
+        .step-num {
             width: 46px;
             height: 46px;
-            border-radius: 8px;
-            background: #1C1C1C;
+            border: 1px solid rgba(28, 28, 28, 0.25);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            color: var(--accent);
+            font-size: 14px;
+            margin-bottom: 22px;
         }
 
-        .brand-qr-icon svg {
-            width: 28px;
-            height: 28px;
+        .step h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin: 0 0 10px;
         }
 
-        .headline {
-            margin: 0 0 14px;
-            font-size: 26px;
-            font-weight: 800;
-        }
-
-        .intro {
-            margin: 0 0 22px;
+        .step p {
             font-size: 13.5px;
-            line-height: 1.6;
+            line-height: 1.7;
             color: var(--muted);
+            margin: 0;
         }
 
-        .intro strong {
-            color: var(--text);
-        }
-
-        .scan-panel {
-            background: var(--scan-bg);
-            border-radius: 16px;
-            padding: 28px 20px 24px;
-            margin-bottom: 18px;
-        }
-
-        .scan-panel svg.qr-icon {
-            width: 44px;
-            height: 44px;
-            color: #fff;
-            margin-bottom: 10px;
-        }
-
-        .drop-label {
-            margin: 0 0 18px;
-            font-size: 13px;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.85);
-        }
-
-        .qr-btn {
-            width: 100%;
-            display: flex;
+        /* ---------- Features ---------- */
+        .features .wrap {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 72px;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 13px 16px;
-            border-radius: 10px;
-            border: none;
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            margin-bottom: 10px;
         }
 
-        .qr-btn:last-child { margin-bottom: 0; }
-
-        .qr-btn svg { width: 16px; height: 16px; }
-
-        .qr-btn.primary {
-            background: #fff;
-            color: var(--text);
-        }
-
-        .qr-btn.secondary {
-            background: transparent;
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-        }
-
-        .qr-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        #fileInput { display: none; }
-
-        .status-msg {
-            font-size: 12.5px;
-            min-height: 16px;
-            margin: 0 0 14px;
-        }
-
-        .status-msg.error { color: var(--error); }
-        .status-msg.info { color: var(--muted); }
-
-        .login-btn {
+        .features-copy .eyebrow {
             display: block;
-            width: 100%;
-            padding: 12px;
-            border-radius: 999px;
-            border: 1px solid #d8d5cc;
-            background: #fff;
+            margin-bottom: 14px;
+        }
+
+        .features-copy h2 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 500;
+            font-size: 38px;
+            line-height: 1.2;
+            margin: 0 0 40px;
+        }
+
+        .feature-item {
+            display: flex;
+            gap: 20px;
+            padding: 22px 0;
+            border-top: 1px solid rgba(28, 28, 28, 0.1);
+        }
+
+        .feature-item:last-child {
+            padding-bottom: 0;
+        }
+
+        .feature-icon {
+            width: 22px;
+            height: 22px;
+            flex-shrink: 0;
             color: var(--text);
-            font-family: inherit;
+        }
+
+        .feature-item h3 {
             font-size: 14px;
             font-weight: 700;
-            text-decoration: none;
-            text-align: center;
-            cursor: pointer;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin: 0 0 8px;
         }
 
-        .login-hint {
-            margin: 10px 0 0;
-            font-size: 11.5px;
+        .feature-item p {
+            font-size: 13.5px;
+            line-height: 1.7;
             color: var(--muted);
+            margin: 0;
         }
 
-        .login-hint a {
-            color: var(--muted);
-            text-decoration: underline;
+        .features-media {
+            position: relative;
         }
 
-        /* Camera scan overlay */
-        .scanner-overlay {
-            position: fixed;
-            inset: 0;
-            background: #000;
-            z-index: 10;
-            display: none;
-            flex-direction: column;
-        }
-
-        .scanner-overlay.active { display: flex; }
-
-        .scanner-overlay video {
-            flex: 1;
+        .features-media img {
             width: 100%;
+            aspect-ratio: 4 / 3.4;
             object-fit: cover;
         }
 
-        .scanner-close {
+        .features-card {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 11;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: none;
-            background: rgba(255, 255, 255, 0.9);
-            font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
+            left: 24px;
+            right: 24px;
+            bottom: 24px;
+            background: var(--bg);
+            padding: 20px 24px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
         }
 
-        .scanner-hint {
-            position: absolute;
-            bottom: 32px;
-            left: 0;
-            right: 0;
+        .features-card .eyebrow {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .features-card blockquote {
+            margin: 0 0 6px;
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 18px;
+        }
+
+        .features-card p {
+            margin: 0;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        /* ---------- CTA ---------- */
+        .cta {
             text-align: center;
-            color: #fff;
+            padding: 100px 0 110px;
+        }
+
+        .cta-icon {
+            width: 40px;
+            height: 40px;
+            color: var(--accent);
+            margin: 0 auto 24px;
+        }
+
+        .cta h2 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 500;
+            font-size: 36px;
+            line-height: 1.25;
+            max-width: 640px;
+            margin: 0 auto 20px;
+        }
+
+        .cta p {
+            font-size: 15px;
+            line-height: 1.7;
+            color: var(--muted);
+            max-width: 480px;
+            margin: 0 auto 36px;
+        }
+
+        .cta-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        /* ---------- Footer ---------- */
+        .site-footer {
+            background: var(--text);
+            color: rgba(250, 249, 246, 0.65);
+            padding: 64px 0 28px;
+        }
+
+        .footer-top {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            padding-bottom: 44px;
+        }
+
+        .footer-brand {
+            font-family: 'Inter', sans-serif;
+            font-weight: 800;
+            font-size: 14px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--bg);
+            margin-bottom: 14px;
+        }
+
+        .footer-top p {
             font-size: 13px;
-            font-weight: 600;
-            text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+            line-height: 1.7;
+            max-width: 260px;
+            margin: 0;
+        }
+
+        .footer-col h4 {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: rgba(250, 249, 246, 0.4);
+            margin: 0 0 18px;
+        }
+
+        .footer-col ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .footer-col a {
+            font-size: 13px;
+            color: rgba(250, 249, 246, 0.75);
+        }
+
+        .footer-col a:hover {
+            color: var(--bg);
+        }
+
+        .footer-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid rgba(250, 249, 246, 0.12);
+            padding-top: 22px;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            color: rgba(250, 249, 246, 0.4);
+        }
+
+        @@media (max-width: 900px) {
+            .nav-links { display: none; }
+            .hero .wrap { grid-template-columns: 1fr; }
+            .hero-media { order: -1; }
+            .steps { grid-template-columns: repeat(2, 1fr); }
+            .features .wrap { grid-template-columns: 1fr; }
+            .footer-top { grid-template-columns: 1fr 1fr; }
+        }
+
+        @@media (max-width: 520px) {
+            .hero h1 { font-size: 34px; }
+            .steps { grid-template-columns: 1fr; }
+            .section-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .cta-actions { flex-direction: column; }
+            .footer-top { grid-template-columns: 1fr; }
+            .footer-bottom { flex-direction: column; gap: 10px; text-align: center; }
         }
     </style>
 </head>
 <body>
-    <div class="backdrop" aria-hidden="true"></div>
 
-    <div class="card">
-        <div class="brand-row">
-            <span class="brand-qr-icon" aria-hidden="true">
-            <img src="~/images/logo.png" alt="QRemember Logo" style="width: 120px; height: 120px; object-fit: contain;" />
-            </span>
+    <header class="site-nav">
+        <div class="wrap">
+            <a href="#hero" class="brand">
+                <img src="~/images/logo.png" alt="QRemember logo" class="brand-logo" />
+                QRemember
+            </a>
+            <ul class="nav-links">
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a class="nav-cta" href="/Shared/Onboarding/Register">Create Event</a></li>
+            </ul>
         </div>
+    </header>
 
-        <h1 class="headline">Be our Guest!</h1>
-        <p class="intro">
-            Welcome to <strong>QRemember</strong>, your repository for all your precious
-            memories during events! Got an event QR Code? Scan or upload it below to be able to share your photos!
-        </p>
+    <section class="hero" id="hero">
+        <div class="wrap">
+            <div class="hero-copy">
+                <span class="eyebrow">Preserve the Narrative</span>
+                <h1>Save every memory from your event.</h1>
+                <p>A simple way for guests to share photos without an app. Just scan, snap, and upload.</p>
+                <a href="/Shared/Onboarding/Register" class="btn btn-primary">Create Your Event</a>
+            </div>
+            <div class="hero-media">
+                <img src="~/images/landing-page.png" alt="A printed QR code stand surrounded by flowers at an event" />
+            </div>
+        </div>
+    </section>
 
-        <div class="scan-panel">
-            <svg class="qr-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="7" height="7"></rect>
-                <rect x="14" y="3" width="7" height="7"></rect>
-                <rect x="3" y="14" width="7" height="7"></rect>
-                <line x1="14" y1="14" x2="14" y2="21"></line>
-                <line x1="21" y1="14" x2="21" y2="21"></line>
-                <line x1="17" y1="14" x2="17" y2="17"></line>
-                <line x1="14" y1="17" x2="21" y2="17"></line>
+    <section class="section" id="how-it-works">
+        <div class="wrap">
+            <div class="section-header">
+                <h2>How it Works</h2>
+                <span class="eyebrow">Simple Steps For a Seamless Experience</span>
+            </div>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-num">01</div>
+                    <h3>Create an event</h3>
+                    <p>Set up your digital gallery page in seconds with just a few clicks.</p>
+                </div>
+                <div class="step">
+                    <div class="step-num">02</div>
+                    <h3>Print your QR code</h3>
+                    <p>Generate a custom design to put on tables, signs, or greeting cards.</p>
+                </div>
+                <div class="step">
+                    <div class="step-num">03</div>
+                    <h3>Guests scan and share</h3>
+                    <p>Friends scan the code to upload their candid photos instantly from any phone.</p>
+                </div>
+                <div class="step">
+                    <div class="step-num">04</div>
+                    <h3>Keep the memories</h3>
+                    <p>Everyone gets to see, relive, and download high-resolution photos later.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section features" id="features">
+        <div class="wrap">
+            <div class="features-copy">
+                <span class="eyebrow">Features Designed for You</span>
+                <h2>Sophisticated technology made simple.</h2>
+
+                <div class="feature-item">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="6" width="18" height="14" rx="2"></rect>
+                        <path d="M8 6l2-3h4l2 3"></path>
+                        <line x1="3" y1="3" x2="21" y2="21"></line>
+                    </svg>
+                    <div>
+                        <h3>No App Needed</h3>
+                        <p>Guests share directly from their mobile browser. No downloads, no barriers, just memories.</p>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                        <path d="M3 15l5-5 4 4 5-6 4 5"></path>
+                    </svg>
+                    <div>
+                        <h3>High-Quality</h3>
+                        <p>Preserve your event's story in full resolution. No compression, just professional clarity.</p>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="5" width="18" height="12" rx="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                    <div>
+                        <h3>Live Gallery</h3>
+                        <p>Watch the photos roll in as they happen on a beautifully curated live feed.</p>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="4" x2="5" y2="20"></line>
+                        <line x1="12" y1="4" x2="12" y2="20"></line>
+                        <line x1="19" y1="4" x2="19" y2="20"></line>
+                        <circle cx="5" cy="9" r="1.6" fill="currentColor" stroke="none"></circle>
+                        <circle cx="12" cy="15" r="1.6" fill="currentColor" stroke="none"></circle>
+                        <circle cx="19" cy="7" r="1.6" fill="currentColor" stroke="none"></circle>
+                    </svg>
+                    <div>
+                        <h3>Easy Management</h3>
+                        <p>Robust host controls to curate content, manage permissions, and download entire albums.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="features-media">
+                <img src="~/images/landing-page.png" alt="Guests sharing photos from an event" />
+                <div class="features-card">
+                    <span class="eyebrow">Collection: Moments</span>
+                    <blockquote>"The shared perspective"</blockquote>
+                    <p>An effortless transition from physical experience to digital archive.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta" id="pricing">
+        <div class="wrap">
+            <svg class="cta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+                <circle cx="12" cy="12" r="9"></circle>
+                <circle cx="12" cy="12" r="2.6" fill="currentColor" stroke="none"></circle>
+                <path d="M12 3v3.2M21 12h-3.2M12 21v-3.2M3 12h3.2M18.4 5.6l-2.3 2.3M18.4 18.4l-2.3-2.3M5.6 18.4l2.3-2.3M5.6 5.6l2.3 2.3"></path>
             </svg>
-            <p class="drop-label">Drag and Drop / Copy and Paste</p>
-
-            <button type="button" id="uploadBtn" class="qr-btn primary">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 3v12"></path>
-                    <path d="M7 8l5-5 5 5"></path>
-                    <path d="M4 17v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"></path>
-                </svg>
-                Upload QR Code
-            </button>
-            <button type="button" id="scanBtn" class="qr-btn secondary">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
-                    <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
-                    <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
-                    <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
-                </svg>
-                Scan QR Code
-            </button>
-            <input type="file" id="fileInput" accept="image/*" />
+            <h2>Ready to capture your event?</h2>
+            <p>Join thousands of hosts making photo sharing effortless. Create your private event gallery in seconds.</p>
+            <div class="cta-actions">
+                <a href="/Shared/Onboarding/Register" class="btn btn-primary">Start Your Event</a>
+                <a href="mailto:hello@qremember.com" class="btn btn-outline">Talk to an Expert</a>
+            </div>
         </div>
+    </section>
 
-        <p id="statusMsg" class="status-msg"></p>
+    <footer class="site-footer">
+        <div class="wrap">
+            <div class="footer-top">
+                <div>
+                    <div class="footer-brand">QRemember</div>
+                    <p>Curating life's most significant chapters through effortless, sophisticated digital preservation.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="#pricing">Pricing</a></li>
+                        <li><a href="#">Business</a></li>
+                        <li><a href="#">Gallery</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>&copy; 2026 QRemember Inc. All rights reserved.</span>
+            </div>
+        </div>
+    </footer>
 
-        <a href="/Shared/Onboarding/Login" class="login-btn">Login</a>
-        <p class="login-hint">Want to be a host? <a href="/Shared/Onboarding/Login">Login here</a></p>
-    </div>
-
-    <div class="scanner-overlay" id="scannerOverlay">
-        <button type="button" class="scanner-close" id="scannerClose" aria-label="Close scanner">&times;</button>
-        <video id="scannerVideo" playsinline muted></video>
-        <p class="scanner-hint">Point your camera at the event QR code</p>
-    </div>
-
-    <canvas id="scanCanvas" style="display:none;"></canvas>
-
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.1.1/dist/jsQR.js"></script>
-    <script>
-        const statusMsg = document.getElementById('statusMsg');
-        const fileInput = document.getElementById('fileInput');
-        const uploadBtn = document.getElementById('uploadBtn');
-        const scanBtn = document.getElementById('scanBtn');
-        const scannerOverlay = document.getElementById('scannerOverlay');
-        const scannerClose = document.getElementById('scannerClose');
-        const scannerVideo = document.getElementById('scannerVideo');
-        const scanCanvas = document.getElementById('scanCanvas');
-
-        let cameraStream = null;
-        let scanLoopHandle = null;
-
-        function setStatus(message, kind) {
-            statusMsg.textContent = message || '';
-            statusMsg.className = 'status-msg' + (kind ? ' ' + kind : '');
-        }
-
-        function setButtonsDisabled(disabled) {
-            uploadBtn.disabled = disabled;
-            scanBtn.disabled = disabled;
-        }
-
-        async function resolveDecodedText(decodedText) {
-            setStatus('Looking up that event…', 'info');
-            setButtonsDisabled(true);
-            try {
-                const response = await fetch('/?handler=ResolveCode', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ decodedText })
-                });
-                const data = await response.json();
-                if (data.success && data.redirectUrl) {
-                    setStatus('Event found — redirecting…', 'info');
-                    window.location.href = data.redirectUrl;
-                } else {
-                    setStatus(data.message || 'That QR code could not be matched to an event.', 'error');
-                }
-            } catch (err) {
-                setStatus('Something went wrong reaching the server. Please try again.', 'error');
-            } finally {
-                setButtonsDisabled(false);
-            }
-        }
-
-        // --- Upload flow: decode a QR code from a chosen image file ---
-        uploadBtn.addEventListener('click', () => fileInput.click());
-
-        fileInput.addEventListener('change', () => {
-            const file = fileInput.files && fileInput.files[0];
-            if (file) decodeImageFile(file);
-        });
-
-        function decodeImageFile(file) {
-            setStatus('Reading QR code…', 'info');
-            const img = new Image();
-            const reader = new FileReader();
-            reader.onload = (e) => { img.src = e.target.result; };
-            reader.onerror = () => setStatus('Could not read that file.', 'error');
-            img.onload = () => {
-                const ctx = scanCanvas.getContext('2d');
-                scanCanvas.width = img.width;
-                scanCanvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
-                const imageData = ctx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
-                const result = window.jsQR ? window.jsQR(imageData.data, imageData.width, imageData.height) : null;
-                if (result && result.data) {
-                    resolveDecodedText(result.data);
-                } else {
-                    setStatus('No QR code found in that image. Try another photo.', 'error');
-                }
-                fileInput.value = '';
-            };
-            img.onerror = () => setStatus('That file could not be opened as an image.', 'error');
-            reader.readAsDataURL(file);
-        }
-
-        // Drag-and-drop / paste support onto the scan panel
-        const scanPanel = document.querySelector('.scan-panel');
-        scanPanel.addEventListener('dragover', (e) => e.preventDefault());
-        scanPanel.addEventListener('drop', (e) => {
-            e.preventDefault();
-            const file = e.dataTransfer.files && e.dataTransfer.files[0];
-            if (file) decodeImageFile(file);
-        });
-        document.addEventListener('paste', (e) => {
-            const item = Array.from(e.clipboardData?.items || []).find(i => i.type.startsWith('image/'));
-            if (item) decodeImageFile(item.getAsFile());
-        });
-
-        // --- Scan flow: live camera QR detection ---
-        scanBtn.addEventListener('click', async () => {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                setStatus('Camera access is not supported on this browser. Try uploading instead.', 'error');
-                return;
-            }
-            try {
-                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-                scannerVideo.srcObject = cameraStream;
-                await scannerVideo.play();
-                scannerOverlay.classList.add('active');
-                setStatus('', null);
-                scanLoop();
-            } catch (err) {
-                setStatus('Could not access the camera. Check permissions and try again.', 'error');
-            }
-        });
-
-        function scanLoop() {
-            if (!scannerOverlay.classList.contains('active')) return;
-            if (scannerVideo.readyState === scannerVideo.HAVE_ENOUGH_DATA) {
-                const ctx = scanCanvas.getContext('2d');
-                scanCanvas.width = scannerVideo.videoWidth;
-                scanCanvas.height = scannerVideo.videoHeight;
-                ctx.drawImage(scannerVideo, 0, 0, scanCanvas.width, scanCanvas.height);
-                const imageData = ctx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
-                const result = window.jsQR ? window.jsQR(imageData.data, imageData.width, imageData.height) : null;
-                if (result && result.data) {
-                    closeScanner();
-                    resolveDecodedText(result.data);
-                    return;
-                }
-            }
-            scanLoopHandle = requestAnimationFrame(scanLoop);
-        }
-
-        function closeScanner() {
-            scannerOverlay.classList.remove('active');
-            if (scanLoopHandle) cancelAnimationFrame(scanLoopHandle);
-            if (cameraStream) {
-                cameraStream.getTracks().forEach(track => track.stop());
-                cameraStream = null;
-            }
-        }
-
-        scannerClose.addEventListener('click', closeScanner);
-    </script>
 </body>
 </html>

@@ -4,11 +4,11 @@ using QRemember.Web.Services;
 
 namespace QRemember.Web.Pages;
 
-public class IndexModel : PageModel
+public class LandingModel : PageModel
 {
     private readonly IEventLookupService _lookup;
 
-    public IndexModel(IEventLookupService lookup)
+    public LandingModel(IEventLookupService lookup)
     {
         _lookup = lookup;
     }
