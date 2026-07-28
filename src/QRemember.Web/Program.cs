@@ -16,6 +16,7 @@ builder.Services.AddRazorPages(options =>
 });
 
 builder.Services.AddSingleton<IQrCodeService, QrCodeService>();
+builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, SmtpEmailSender>();
 
 // Cloudinary
 builder.Services.AddSingleton(_ =>
@@ -56,7 +57,15 @@ else
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false; // adjust later if you add email confirmation
+
+    // Keep this in sync with the [MinLength] validation on Register/ResetPassword —
+    // length is the only rule we enforce, so the client-side hint always matches
+    // what the server actually accepts.
     options.Password.RequiredLength = 8;
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireNonAlphanumeric = false;
 })
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
