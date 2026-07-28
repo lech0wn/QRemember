@@ -26,6 +26,7 @@ public class RegisterModel : PageModel
     [Required(ErrorMessage = "Password is required")]
     [DataType(DataType.Password)]
     [MinLength(8, ErrorMessage = "Password must be at least 8 characters")]
+    [RegularExpression(@"^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).+$", ErrorMessage = "Password must include an uppercase letter, a number, and a symbol")]
     public required string Password { get; set; }
 
     [BindProperty]

@@ -156,6 +156,14 @@
             border-bottom-color: var(--accent);
         }
 
+        .field-hint {
+            display: block;
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: -6px;
+            margin-bottom: 10px;
+        }
+
         .password-wrapper {
             position: relative;
         }
@@ -252,6 +260,7 @@
 
             <div class="form-group">
                 <label asp-for="Password">Password</label>
+                <span class="field-hint">At least 8 characters, with an uppercase letter, a number, and a symbol</span>
                 <div class="password-wrapper">
                     <input asp-for="Password" type="password" placeholder="" />
                     <button type="button" class="toggle-password" aria-label="Show password">
