@@ -76,8 +76,31 @@
             cursor: pointer;
         }
 
+        .event-photo-link {
+            position: relative;
+        }
+
         .event-photo {
             width: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .event-photo-meta {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 20px 12px 10px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0));
+            color: #fff;
+        }
+
+        .event-photo-author {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            margin: 0;
         }
 
         .event-caption {
@@ -175,7 +198,20 @@
                 {
                     <div class="event-card">
                         <a class="event-photo-link" asp-page="EventDetail" asp-route-code="@ev.EventCode">
-                            <div class="event-photo" style="height:@(ev.PhotoHeight)px;background:linear-gradient(160deg, @ev.GradientFrom, @ev.GradientTo);"></div>
+                            @if (ev.CoverPhotoUrl is not null)
+                            {
+                                <img class="event-photo" style="height:@(ev.PhotoHeight)px;" src="@ev.CoverPhotoUrl" alt="" />
+                                @if (!string.IsNullOrWhiteSpace(ev.CoverPhotoUploaderName))
+                                {
+                                    <div class="event-photo-meta">
+                                        <p class="event-photo-author">@ev.CoverPhotoUploaderName</p>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="event-photo" style="height:@(ev.PhotoHeight)px;background:linear-gradient(160deg, @ev.GradientFrom, @ev.GradientTo);"></div>
+                            }
                             <div class="event-caption">
                                 <span class="event-title">@ev.Title</span>
                                 <span class="event-year"> &bull; @ev.Year</span>

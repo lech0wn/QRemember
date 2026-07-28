@@ -210,6 +210,23 @@
             transition: filter 0.15s, opacity 0.15s;
         }
 
+        .photo-meta {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 20px 12px 10px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0));
+            color: #fff;
+        }
+
+        .photo-author {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            margin: 0;
+        }
+
         .photo-tile[data-status="hidden"] .photo-img {
             filter: grayscale(70%);
             opacity: 0.55;
@@ -457,6 +474,9 @@
                     <div class="photo-tile" data-status="@photo.Status" data-photo-id="@photo.Id">
                         <img class="photo-img" src="@photo.ImageUrl" alt="Photo by @photo.UploaderName" loading="lazy" />
                         <span class="status-badge">@photo.Status</span>
+                        <div class="photo-meta">
+                            <p class="photo-author">@photo.UploaderName</p>
+                        </div>
                         <div class="photo-actions">
                             <button type="button" class="action-approve" data-status="approved" title="Approve" aria-label="Approve photo">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
