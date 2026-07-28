@@ -63,12 +63,13 @@ public class CreateEventModel : PageModel
         var eventCode = await GenerateUniqueEventCodeAsync(Name);
         var guestOrigin = ResolveGuestOrigin();
 
-        // In the ResolveGuestOrigin method or where QR code is generated:
-        var guestLink = Url.Page("/Guest/GuestEventGallery", pageHandler: null,
+        // Guests land on the upload page first (share photos + see recent submissions);
+        // the full gallery is reachable from there via "View Gallery".
+        var guestLink = Url.Page("/Guest/GuestUpload", pageHandler: null,
             values: new { code = eventCode },
             protocol: guestOrigin.Scheme,
             host: guestOrigin.Authority)
-            ?? $"{guestOrigin.Scheme}://{guestOrigin.Authority}/Guest/GuestEventGallery?code={eventCode}";
+            ?? $"{guestOrigin.Scheme}://{guestOrigin.Authority}/Guest/GuestUpload?code={eventCode}";
 
         var newEvent = new Event
         {
@@ -119,14 +120,18 @@ public class CreateEventModel : PageModel
         }
 
         var lanIp = GetLocalNetworkIp();
-        var boundPort = GetBoundPort(Request.Scheme); // Match the incoming request's scheme
+
+        // Always use http here, even if the organizer loaded this page over https:
+        // the dev HTTPS cert only covers localhost, not the LAN IP, and isn't
+        // trusted on guest devices, so https would fail to load for everyone.
+        var boundPort = GetBoundPort("http");
 
         if (lanIp is null || boundPort is null)
         {
             return fallback;
         }
 
-        return new Uri($"{Request.Scheme}://{lanIp}:{boundPort}");
+        return new Uri($"http://{lanIp}:{boundPort}");
     }
 
     private static bool IsLoopbackHost(string hostName)

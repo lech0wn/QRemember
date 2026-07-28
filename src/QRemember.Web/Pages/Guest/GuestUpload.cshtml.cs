@@ -25,15 +25,18 @@ public class GuestUploadModel : PageModel
         _logger = logger;
     }
 
-    public const int MaxPhotosLimit = 15;
+    // How many photos a guest can select and upload in one go. Not a total
+    // per-event cap — guests can come back and upload additional batches.
+    public const int MaxPhotosPerBatch = 10;
 
-    public int MaxPhotos => MaxPhotosLimit;
+    public int MaxPhotos => MaxPhotosPerBatch;
     public string? EventCode { get; private set; }
     public string? EventName { get; private set; }
-    public string? EventHashtag { get; private set; }
+    public string? EventDescription { get; private set; }
     public int? EventId { get; private set; }
     public string? ErrorMessage { get; private set; }
     public bool EventFound { get; private set; }
+    public IReadOnlyList<GuestEventGalleryModel.GalleryPhoto> RecentPhotos { get; private set; } = Array.Empty<GuestEventGalleryModel.GalleryPhoto>();
 
 
     private static readonly HashSet<string> AllowedContentTypes = new(StringComparer.OrdinalIgnoreCase)
@@ -66,7 +69,7 @@ public class GuestUploadModel : PageModel
             return Page();
         }
 
-        LoadEventData(eventEntity);
+        await LoadEventDataAsync(eventEntity);
         return Page();
     }
 
@@ -143,19 +146,22 @@ public class GuestUploadModel : PageModel
             return JsonError("No photos to upload.");
         }
 
-        var existingCount = await _dbContext.Photos.CountAsync(p => p.EventId == eventEntity.Id);
-        if(existingCount + request.PhotoData.Count > MaxPhotosLimit)
+        if (request.PhotoData.Count > MaxPhotosPerBatch)
         {
-            return JsonError($"This event can only hold {MaxPhotosLimit} photos.");
+            return JsonError($"You can upload up to {MaxPhotosPerBatch} photos at a time.");
         }
+
         try
         {
             var savedCount = await ProcessPhotoUploadsAsync (eventEntity, request);
+            var message = eventEntity.AutoApprovePhotos
+                ? $"{savedCount} photo(s) uploaded!"
+                : $"{savedCount} photo(s) uploaded and awaiting approval";
 
             return new JsonResult(new
             {
                 success = true,
-                message = $"{savedCount} photo(s) uploaded and awaiting approval",
+                message,
                 photoCount = savedCount
             });
         }
@@ -180,13 +186,27 @@ public class GuestUploadModel : PageModel
     }
 
 
-    private void LoadEventData(Event eventEntity)
+    private const int RecentPhotosToShow = 8;
+
+    private async Task LoadEventDataAsync(Event eventEntity)
     {
         EventFound = true;
         EventCode = eventEntity.EventCode;
         EventName = eventEntity.Name;
-        EventHashtag = eventEntity.EventCode;
+        EventDescription = eventEntity.Description;
         EventId = eventEntity.Id;
+
+        RecentPhotos = await _dbContext.Photos
+            .AsNoTracking()
+            .Where(p => p.EventId == eventEntity.Id && p.IsApproved && !p.IsHidden)
+            .OrderByDescending(p => p.UploadedAt)
+            .Take(RecentPhotosToShow)
+            .Select(p => new GuestEventGalleryModel.GalleryPhoto(
+                p.Id,
+                p.CloudinaryUrl,
+                p.UploaderName ?? "Guest",
+                p.Caption))
+            .ToListAsync();
     }
 
     private bool IsValidScanRequest(ScanRequest? request)
@@ -239,7 +259,7 @@ public class GuestUploadModel : PageModel
                 UploaderName = guestName,
                 Caption = null,
                 UploadedAt = DateTime.UtcNow,
-                IsApproved = false,
+                IsApproved = eventEntity.AutoApprovePhotos,
                 IsHidden = false,
             });
 

@@ -26,7 +26,6 @@ public class GuestEventGalleryModel : PageModel
     public string EventDateDisplay { get; private set; } = string.Empty;
     public string OrganizerDisplayName { get; private set; } = string.Empty;
     public string? HeroImageUrl { get; private set; }
-    public string EventHashtag { get; private set; } = string.Empty;
     public string? EventDescription { get; private set; }
     public IReadOnlyList<GalleryPhoto> Photos { get; private set; } = Array.Empty<GalleryPhoto>();
 
@@ -62,7 +61,6 @@ public class GuestEventGalleryModel : PageModel
     {
         EventName = eventEntity.Name;
         EventCode = eventEntity.EventCode;
-        EventHashtag = eventEntity.EventCode;
         EventDateDisplay = eventEntity.EventDate.ToString("MMMM d, yyyy");
         OrganizerDisplayName = GetOrganizerDisplayName(eventEntity.Organizer);
         EventDescription = eventEntity.Description;
@@ -95,7 +93,6 @@ public class GuestEventGalleryModel : PageModel
     {
         EventName = "Sample Event";
         EventCode = "sample-event";
-        EventHashtag = "sample-event";
         EventDateDisplay = DateTime.Now.AddDays(14).ToString("MMMM d, yyyy");
         OrganizerDisplayName = "Event Organizer";
         EventDescription = "This is a sample event. Create your own event to start collecting memories!";

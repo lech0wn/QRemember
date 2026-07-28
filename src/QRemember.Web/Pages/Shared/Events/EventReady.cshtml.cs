@@ -20,7 +20,6 @@ public class EventReadyModel : PageModel
     }
 
     public string EventName { get; private set; } = string.Empty;
-    public string Hashtag { get; private set; } = string.Empty;
     public string EventLink { get; private set; } = string.Empty;
     public string QrCodeDataUri { get; private set; } = string.Empty;
     public DateTime ExpiresAt { get; private set; }
@@ -42,10 +41,6 @@ public class EventReadyModel : PageModel
         }
 
         EventName = organizerEvent.Name;
-
-        var slug = new string(EventName.Where(char.IsLetterOrDigit).ToArray());
-        Hashtag = "#" + (slug.Length > 0 ? slug : "YourEvent");
-
         EventLink = organizerEvent.QrCodeUrl;
         QrCodeDataUri = _qrCodeService.GeneratePngDataUri(EventLink);
         ExpiresAt = organizerEvent.ExpiresAt;

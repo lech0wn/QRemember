@@ -17,10 +17,6 @@
             <p class="hero-description">@Model.EventDescription</p>
         }
 
-        @if (!string.IsNullOrWhiteSpace(Model.EventCode))
-        {
-            <span class="event-badge">#@Model.EventCode</span>
-        }
     </div>
 
     <a href="/Guest/GuestUpload?code=@Model.EventCode" class="share-link" aria-label="Share a photo">

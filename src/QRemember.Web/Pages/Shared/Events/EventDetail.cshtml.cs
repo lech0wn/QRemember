@@ -20,8 +20,8 @@ public class EventDetailModel : PageModel
     public record PhotoCardViewModel(int Id, string ImageUrl, string UploaderName, string? Caption, string Status);
 
     public string EventName { get; private set; } = string.Empty;
-    public string Hashtag { get; private set; } = string.Empty;
     public string EventCode { get; private set; } = string.Empty;
+    public bool AutoApprove { get; private set; }
 
     public List<PhotoCardViewModel> Photos { get; } = new();
 
@@ -43,9 +43,7 @@ public class EventDetailModel : PageModel
 
         EventCode = organizerEvent.EventCode;
         EventName = organizerEvent.Name;
-
-        var slug = new string(EventName.Where(char.IsLetterOrDigit).ToArray());
-        Hashtag = "#" + (slug.Length > 0 ? slug : "YourEvent");
+        AutoApprove = organizerEvent.AutoApprovePhotos;
 
         var photos = await _db.Photos
             .AsNoTracking()
@@ -107,6 +105,29 @@ public class EventDetailModel : PageModel
     }
 
 
+    public async Task<IActionResult> OnPostSetAutoApproveAsync([FromBody] SetAutoApproveRequest request)
+    {
+        if (request is null)
+        {
+            return new JsonResult(new { success = false, message = "Bad Request." });
+        }
+
+        var organizerId = _userManager.GetUserId(User);
+        var organizerEvent = await _db.Events
+            .FirstOrDefaultAsync(e => e.EventCode == request.EventCode && e.OrganizerId == organizerId);
+
+        if (organizerEvent is null)
+        {
+            return new JsonResult(new { success = false, message = "Event not found." });
+        }
+
+        organizerEvent.AutoApprovePhotos = request.Enabled;
+        await _db.SaveChangesAsync();
+
+        return new JsonResult(new { success = true, autoApprove = organizerEvent.AutoApprovePhotos });
+    }
+
+
     public async Task<IActionResult> OnPostDeletePhotoAsync([FromBody] DeletePhotoRequest request)
     {
         if (request is null)
@@ -135,6 +156,12 @@ public class EventDetailModel : PageModel
     {
         public int PhotoId { get; set; }
         public string Status { get; set; } = "";
+    }
+
+    public class SetAutoApproveRequest
+    {
+        public string EventCode { get; set; } = "";
+        public bool Enabled { get; set; }
     }
 
     public class DeletePhotoRequest
